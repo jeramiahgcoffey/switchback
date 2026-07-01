@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import type { Trail } from "@/lib/types";
 
 /**
- * Sticky "Plan this trip" bar — pinned to the viewport bottom while the
+ * Sticky "Plan this trip" bar, pinned to the viewport bottom while the
  * detail page scrolls (it must be the last child of the page's root
  * element), deep-linking into the Trip Builder with ?trail=slug.
  */

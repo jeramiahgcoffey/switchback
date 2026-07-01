@@ -27,7 +27,7 @@ function SpecCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Three preset cards — picking one becomes the active rig app-wide. */
+/** Three preset cards. Picking one becomes the active rig app-wide. */
 export function RigSelector({
   activeRigId,
   modified,

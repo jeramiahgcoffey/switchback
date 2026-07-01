@@ -30,7 +30,7 @@ export async function generateMetadata({
     title: trail.name,
     description: trail.summary,
     openGraph: {
-      title: `${trail.name} — Switchback`,
+      title: `${trail.name} · Switchback`,
       description: trail.summary,
       images: [{ url: trail.heroImage }],
     },

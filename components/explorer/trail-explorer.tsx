@@ -4,7 +4,7 @@
  * Trail Explorer orchestrator.
  *
  * - Filters live in URL searchParams (shareable). Updates go through
- *   window.history.replaceState — Next.js shallow routing — so typing through
+ *   window.history.replaceState, Next.js shallow routing, so typing through
  *   filters never re-renders the server tree or resets scroll.
  * - One `hoveredSlug` drives both views: hovering a card highlights its map
  *   marker; hovering a marker highlights (and scrolls to) its card.
@@ -184,7 +184,7 @@ export function TrailExplorer() {
                 <h2 className="heading-display mt-3 text-3xl">No trail fits that line</h2>
                 <p className="mx-auto mt-3 max-w-sm text-sm text-sand-dim">
                   That combination filtered out the whole catalog. Loosen a facet
-                  or start fresh — the dim dots on the map show what you&apos;re missing.
+                  or start fresh. The dim dots on the map show what you&apos;re missing.
                 </p>
                 <div className="mt-8">
                   <Button variant="outline" size="sm" onClick={clearFilters}>

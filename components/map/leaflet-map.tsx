@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Shared Leaflet wrapper — keyless OSM tiles with the app's warm-dusk tile
+ * Shared Leaflet wrapper: keyless OSM tiles with the app's warm-dusk tile
  * grade. Feature components add their own layers (markers, polylines) as
  * children using react-leaflet primitives.
  *
@@ -12,7 +12,7 @@
  *     ssr: false,
  *   });
  *
- * The map fills its parent — give the parent an explicit height.
+ * The map fills its parent. Give the parent an explicit height.
  */
 
 import { MapContainer, TileLayer } from "react-leaflet";

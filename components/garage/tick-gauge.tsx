@@ -27,7 +27,7 @@ export function TickGauge({
   onChange: (v: number) => void;
   /** Readout formatter, e.g. (v) => `${v}"` */
   format: (v: number) => string;
-  /** Preset value — a small ember delta marker appears when edited away from stock. */
+  /** Preset value. A small ember delta marker appears when edited away from stock. */
   stockValue?: number;
   /** Total tick marks along the scale (including both ends). */
   ticks?: number;

@@ -75,7 +75,7 @@ function asStep(value: unknown): WizardStep {
   return value === 2 || value === 3 ? value : 1;
 }
 
-/** Public entry — renders the skeleton until localStorage is readable. */
+/** Public entry. Renders the skeleton until localStorage is readable. */
 export function TripWizard() {
   const hydrated = useHydrated();
   if (!hydrated) return <WizardSkeleton />;
@@ -254,7 +254,7 @@ function TripWizardInner() {
         )}
       </div>
 
-      {/* Wizard footer — back/continue plus the auto-save readout. */}
+      {/* Wizard footer: back/continue plus the auto-save readout. */}
       <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-edge pt-6">
         {effectiveStep > 1 && (
           <Button variant="outline" onClick={() => goTo((effectiveStep - 1) as WizardStep)}>

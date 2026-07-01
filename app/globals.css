@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Switchback theme — "GPS head unit at dusk meets premium gear brand".
+ * Switchback theme: "GPS head unit at dusk meets premium gear brand".
  * Dark-first. Custom palette (all text pairs meet WCAG AA on basalt):
  *   basalt    near-black base        #15181C
  *   gunmetal  surface cards          #1E2126
@@ -34,7 +34,7 @@
   --color-edge: rgb(216 205 187 / 0.14);
   --color-edge-strong: rgb(216 205 187 / 0.28);
 
-  /* type — wired to next/font variables set in app/layout.tsx */
+  /* type: wired to next/font variables set in app/layout.tsx */
   --font-display: var(--font-barlow-condensed);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);

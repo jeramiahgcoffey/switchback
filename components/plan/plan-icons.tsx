@@ -1,5 +1,5 @@
 /**
- * Trip Wizard icon set — one consistent stroked style (1.6px stroke,
+ * Trip Wizard icon set: one consistent stroked style (1.6px stroke,
  * round caps, currentColor) so waypoint flags, resupply chips, and gear
  * category headers all read as the same instrument family.
  */

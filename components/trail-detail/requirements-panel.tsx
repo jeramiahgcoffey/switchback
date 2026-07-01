@@ -6,7 +6,7 @@ import { matchRigToTrail } from "@/lib/derive";
 import { useActiveRig } from "@/lib/storage";
 
 /**
- * Requirements panel — pass/warn/fail rows from the shared
+ * Requirements panel: pass/warn/fail rows from the shared
  * matchRigToTrail() against the active rig in localStorage. The storage hook
  * falls back to the Stock Wrangler Sport on the server and during hydration,
  * so the panel is always meaningful and never mismatches.

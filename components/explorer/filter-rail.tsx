@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Explorer filter rail — difficulty, terrain, season, trip length, state.
+ * Explorer filter rail: difficulty, terrain, season, trip length, state.
  * Fully controlled: reads `filters`, emits complete next states via
  * `onChange`; the orchestrator syncs them into URL searchParams.
  * Facet counts are honest ("what would this click yield?"), so a chip
@@ -121,7 +121,7 @@ export function FilterRail({
                   key={level}
                   type="button"
                   aria-pressed={active}
-                  title={`${DIFFICULTY_META[level].label} — ${n} trail${n === 1 ? "" : "s"}`}
+                  title={`${DIFFICULTY_META[level].label}: ${n} trail${n === 1 ? "" : "s"}`}
                   onClick={() => toggle("difficulty", level)}
                   className={`${CHIP_BASE} ${active ? CHIP_ON : CHIP_OFF} ${
                     n === 0 && !active ? "opacity-45" : ""

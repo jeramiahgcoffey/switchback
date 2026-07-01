@@ -1,5 +1,5 @@
 /**
- * Trail Explorer filter model — pure, framework-free.
+ * Trail Explorer filter model: pure, framework-free.
  *
  * Filters live in URL searchParams so every view is shareable:
  *   /trails?diff=3,4&terrain=slickrock,desert&season=fall&len=multi&state=UT
@@ -31,7 +31,7 @@ export const EMPTY_FILTERS: ExplorerFilters = {
   states: [],
 };
 
-/** Marker payload the overview map needs — no Leaflet types here. */
+/** Marker payload the overview map needs. No Leaflet types here. */
 export interface ExplorerMarker {
   slug: string;
   name: string;
@@ -194,7 +194,7 @@ export type FacetKey = keyof ExplorerFilters;
 
 /**
  * How many trails an option would surface, ignoring its own facet's current
- * selection but respecting every other facet — standard faceted-count math,
+ * selection but respecting every other facet, standard faceted-count math,
  * so the rail's numbers always tell the truth about what a click yields.
  */
 export function facetOptionCount(

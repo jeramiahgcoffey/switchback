@@ -49,7 +49,7 @@ export function PayloadBar({
         role="img"
         aria-label={`Loadout ${totalLbs.toLocaleString("en-US")} of ${payloadLbs.toLocaleString(
           "en-US",
-        )} lb payload — ${Math.round(pctOfPayload)}%${over ? ", over the limit" : ""}`}
+        )} lb payload: ${Math.round(pctOfPayload)}%${over ? ", over the limit" : ""}`}
       >
         {/* track */}
         <div
@@ -61,12 +61,12 @@ export function PayloadBar({
             {segments.map(({ cat, lbs }) => (
               <div
                 key={cat}
-                title={`${GEAR_CATEGORY_META[cat].label} — ${lbs.toLocaleString("en-US")} lb`}
+                title={`${GEAR_CATEGORY_META[cat].label}: ${lbs.toLocaleString("en-US")} lb`}
                 className="h-full shrink-0 transition-[width] duration-500 ease-out"
                 style={{
                   width: `${scaleMax > 0 ? (lbs / scaleMax) * 100 : 0}%`,
                   backgroundColor: GEAR_CATEGORY_META[cat].color,
-                  // 2px surface gap between touching segments — an inset
+                  // 2px surface gap between touching segments, an inset
                   // shadow (not a border) so zero-width segments show nothing
                   // and width animations stay smooth.
                   boxShadow: "inset -2px 0 0 var(--color-gunmetal-light)",
@@ -118,7 +118,7 @@ export function PayloadBar({
         </span>
       </div>
 
-      {/* legend — identity never rides on color alone */}
+      {/* legend: identity never rides on color alone */}
       <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
         {segments.map(({ cat, lbs }) => (
           <li

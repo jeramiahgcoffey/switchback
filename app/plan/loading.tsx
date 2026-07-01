@@ -1,7 +1,7 @@
 import { PlanHeader } from "@/components/plan/plan-header";
 import { WizardSkeleton } from "@/components/plan/wizard-skeleton";
 
-/** Route-level loading UI — paints the same frame the page resolves into. */
+/** Route-level loading UI. Paints the same frame the page resolves into. */
 export default function PlanLoading() {
   return (
     <div>

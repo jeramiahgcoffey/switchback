@@ -1,5 +1,5 @@
 /**
- * Trip Wizard shared helpers — pure functions and types used across the
+ * Trip Wizard shared helpers: pure functions and types used across the
  * three wizard steps. No React, no side effects.
  */
 import type { Season, Trail } from "@/lib/types";
@@ -90,7 +90,7 @@ export function formatWheelHours(h: number): string {
 
 /**
  * Upper bound for the day-split stepper: one leg per campsite plus the
- * final push to the exit — asking for more days than campsites exist
+ * final push to the exit, asking for more days than campsites exist
  * would silently produce shorter itineraries.
  */
 export function maxSplitDays(trail: Trail): number {

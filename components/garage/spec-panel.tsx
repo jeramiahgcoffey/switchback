@@ -149,7 +149,7 @@ export function SpecPanel({
         </div>
       </div>
 
-      {/* summary strip — the whole sheet in one mono line */}
+      {/* summary strip: the whole sheet in one mono line */}
       <div className="border-t border-edge bg-basalt-deep/50 px-4 py-2.5 sm:px-5">
         <p className="readout text-[11px] text-sand-dim">
           {rig.tireIn}&quot; TIRES · {rig.clearanceIn.toFixed(1)}&quot; CLNC ·{" "}

@@ -21,9 +21,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://switchback.jeramiahcoffey.com"),
   title: {
-    default: "Switchback — Overland trip planning",
-    template: "%s — Switchback",
+    default: "Switchback · Overland trip planning",
+    template: "%s · Switchback",
   },
   description:
     "Plan the route. Ready the rig. Chase the weekend. Curated overland trails, day-by-day trip plans, and rig-readiness checks.",

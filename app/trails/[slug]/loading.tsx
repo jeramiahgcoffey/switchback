@@ -1,4 +1,4 @@
-/** Skeleton for the trail detail route — mirrors hero, stat band, and grid. */
+/** Skeleton for the trail detail route. Mirrors hero, stat band, and grid. */
 export default function TrailDetailLoading() {
   return (
     <div aria-busy="true" aria-label="Loading trail">

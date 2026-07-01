@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Step 3 — condition-aware packing checklist. buildPackingList() filters
+ * Step 3: condition-aware packing checklist. buildPackingList() filters
  * the ~70-item gear catalog by trip length, season, terrain, and
  * difficulty, so a 2-day summer sand run and a 4-day alpine rock trail
  * produce visibly different lists. Items are grouped in the 8 gear
@@ -175,7 +175,7 @@ export function StepChecklist({
               aria-hidden
               className="inline-block h-1.5 w-1.5 shrink-0 rotate-45 bg-ember"
             />
-            marks essential items — pack these first.
+            marks essential items. Pack these first.
           </p>
 
           {checkedCount > 0 && (

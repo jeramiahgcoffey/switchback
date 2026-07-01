@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Step 1 — Route & Crew. Pick/confirm the trail (pre-seeded from ?trail=),
+ * Step 1: Route & Crew. Pick/confirm the trail (pre-seeded from ?trail=),
  * set a start date (season is derived from it), party size, and rig.
  * Rig options carry a live readiness verdict against the chosen trail.
  */
@@ -224,8 +224,8 @@ export function StepSetup({
                 <AlertIcon size={14} className="mt-0.5 shrink-0" />
                 <span>
                   {selectedTrail.name} runs{" "}
-                  {selectedTrail.seasons.map((s) => SEASON_LABEL[s]).join(" / ")}{" "}
-                  — a {SEASON_LABEL[season].toLowerCase()} start is outside the
+                  {selectedTrail.seasons.map((s) => SEASON_LABEL[s]).join(" / ")}.{" "}
+                  A {SEASON_LABEL[season].toLowerCase()} start is outside the
                   usual window. Expect closures or rough conditions.
                 </span>
               </p>
@@ -300,7 +300,7 @@ export function StepSetup({
         </div>
         <p className="mt-3 text-xs text-sand-dim">
           The <span className="text-sand">Garage</span> tag marks your active
-          build — spec edits made there carry into fuel math here.
+          build. Spec edits made there carry into fuel math here.
         </p>
       </section>
     </div>

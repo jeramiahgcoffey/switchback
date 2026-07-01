@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Trail Detail client shell — owns the single shared `trackPosition` state
+ * Trail Detail client shell: owns the single shared `trackPosition` state
  * (an index into trail.track) that syncs the map's ghost marker, the
  * elevation chart cursor, and the waypoint timeline highlight. Hover any of
  * the three and the other two respond.
@@ -24,7 +24,7 @@ const TrailMap = nextDynamic(() => import("./trail-map"), {
 
 /**
  * Dark skin for Leaflet chrome (divIcons, popups, tooltips, controls).
- * Injected here — scoped by .sb-* classes — because components/ui and
+ * Injected here, scoped by .sb-* classes, because components/ui and
  * globals.css are shared files this feature must not edit. The string is a
  * compile-time constant; nothing dynamic is interpolated.
  */

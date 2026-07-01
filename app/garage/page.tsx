@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Garage — rig presets and an instrument-panel spec sheet, a readiness
+ * Garage: rig presets and an instrument-panel spec sheet, a readiness
  * matrix across the whole trail catalog, and the payload calculator.
  * All user state lives client-side in localStorage ('switchback:rig:v1')
  * so the Explorer, Detail, and Plan pages reflect the same rig.

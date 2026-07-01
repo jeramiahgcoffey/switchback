@@ -2,14 +2,14 @@ import type { WaypointKind } from "@/lib/types";
 import type { BadgeTone } from "@/components/ui/badge";
 
 /**
- * One consistent stroked icon style for every waypoint kind — used as React
+ * One consistent stroked icon style for every waypoint kind, used as React
  * markup in the timeline and as raw SVG strings inside Leaflet divIcons so
  * the map and the route log always read the same.
  */
 
 export interface WaypointMeta {
   label: string;
-  /** Ring/accent color (hex — must also work inside Leaflet divIcon HTML). */
+  /** Ring/accent color (hex, must also work inside Leaflet divIcon HTML). */
   color: string;
   tone: BadgeTone;
   /** Inner glyph markup, drawn on a 24x24 grid, stroke-only. */
@@ -75,7 +75,7 @@ export const WAYPOINT_META: Record<WaypointKind, WaypointMeta> = {
   },
 };
 
-/** Full SVG markup for a waypoint badge — safe for Leaflet divIcon `html`. */
+/** Full SVG markup for a waypoint badge, safe for Leaflet divIcon `html`. */
 export function waypointIconSvg(kind: WaypointKind, size = 28): string {
   const meta = WAYPOINT_META[kind];
   return `<svg width="${size}" height="${size}" viewBox="0 0 28 28" role="img" aria-label="${meta.label}" xmlns="http://www.w3.org/2000/svg">
@@ -87,7 +87,7 @@ export function waypointIconSvg(kind: WaypointKind, size = 28): string {
 /**
  * React wrapper around the same markup for use in the waypoint timeline.
  * Safety: the injected HTML is produced solely from the hardcoded
- * `WAYPOINT_META` constants above — no user or runtime data ever flows in.
+ * `WAYPOINT_META` constants above. No user or runtime data ever flows in.
  */
 export function WaypointIcon({
   kind,

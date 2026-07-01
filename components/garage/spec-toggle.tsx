@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Equipment rocker switch for boolean specs (winch, lockers, 4-lo) —
+ * Equipment rocker switch for boolean specs (winch, lockers, 4-lo),
  * instrument-panel style: label left, switch + mono status readout right.
  */
 export function SpecToggle({
@@ -13,7 +13,7 @@ export function SpecToggle({
   label: string;
   on: boolean;
   onChange: (next: boolean) => void;
-  /** Preset value — shows a modified marker when edited away from stock. */
+  /** Preset value. Shows a modified marker when edited away from stock. */
   stockOn?: boolean;
 }) {
   const modified = stockOn !== undefined && on !== stockOn;

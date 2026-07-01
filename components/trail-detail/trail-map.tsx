@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Trail Detail map layers — route polyline (with a drawn-in animation on
+ * Trail Detail map layers: route polyline (with a drawn-in animation on
  * load), typed SVG divIcon waypoint markers with rich popups, and the ghost
  * marker driven by the shared trackPosition state. Loaded with
  * `next/dynamic` + `ssr: false` from TrailDetailView because Leaflet touches
@@ -83,7 +83,7 @@ export default function TrailMap({ trail, hoverIndex, onHoverIndex }: TrailMapPr
     return () => window.clearTimeout(timer);
   }, []);
 
-  // Nearest track index to a hovered latlng — track is 40-80 points, so a
+  // Nearest track index to a hovered latlng. Track is 40-80 points, so a
   // linear scan in equirectangular space is effectively free.
   const nearestToLatLng = useCallback(
     (latlng: L.LatLng): number => {
@@ -111,7 +111,7 @@ export default function TrailMap({ trail, hoverIndex, onHoverIndex }: TrailMapPr
 
   return (
     <LeafletMap bounds={positions} boundsPadding={34} scrollWheelZoom={false}>
-      {/* dark casing under the ember route line — GPS head-unit style */}
+      {/* dark casing under the ember route line, GPS head-unit style */}
       <Polyline
         positions={positions}
         pathOptions={{ color: "#101215", weight: 7, opacity: 0.8, interactive: false }}

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Explorer overview map — every visible trailhead as a difficulty-colored
+ * Explorer overview map: every visible trailhead as a difficulty-colored
  * diamond marker on the shared keyless-OSM LeafletMap wrapper.
  *
  * Leaflet touches `window` at import time, so this module must only ever be
@@ -55,7 +55,7 @@ function diamondIcon(difficulty: Difficulty, active: boolean): DivIcon {
   return icon;
 }
 
-/** Tiny dim dot for trails the current filters exclude — context, not targets. */
+/** Tiny dim dot for trails the current filters exclude: context, not targets. */
 function contextIcon(difficulty: Difficulty): DivIcon {
   const key = `ctx-${difficulty}`;
   const cached = iconCache.get(key);
@@ -91,9 +91,9 @@ function FitToMarkers({ markers }: { markers: ExplorerMarker[] }) {
 }
 
 export interface ExplorerMapProps {
-  /** Trails matching the active filters — interactive markers. */
+  /** Trails matching the active filters: interactive markers. */
   matched: ExplorerMarker[];
-  /** Filtered-out trails — rendered as faint, non-interactive context dots. */
+  /** Filtered-out trails: rendered as faint, non-interactive context dots. */
   dimmed: ExplorerMarker[];
   hoveredSlug: string | null;
   onMarkerHover: (slug: string | null) => void;
@@ -107,7 +107,7 @@ export default function ExplorerMap({
 }: ExplorerMapProps) {
   const router = useRouter();
 
-  // Initial view only — MapContainer ignores bounds/center after mount;
+  // Initial view only. MapContainer ignores bounds/center after mount;
   // FitToMarkers owns every subsequent move.
   const initialBounds = useMemo(
     () =>

@@ -3,8 +3,8 @@ import type { GearCategory, ReadinessStatus } from "@/lib/types";
 /**
  * Categorical palette for the payload calculator's stacked weight-budget bar
  * and gear legend. Eight hues in a FIXED order (the order is the CVD-safety
- * mechanism — never re-sort or cycle it): validated against the gunmetal
- * surface (#1E2126) with the dataviz six-checks validator — all checks pass,
+ * mechanism, never re-sort or cycle it): validated against the gunmetal
+ * surface (#1E2126) with the dataviz six-checks validator, all checks pass,
  * worst adjacent CVD ΔE 18.4 (target ≥ 12). Segments additionally carry 2px
  * surface gaps and a swatch-labeled legend, so identity is never color-alone.
  */
@@ -33,7 +33,7 @@ export const GEAR_CATEGORY_META: Record<
   water: { label: "Water", color: "#3987E5" },
 };
 
-/** Verdict presentation — status colors are reserved and always ship with an icon + label. */
+/** Verdict presentation: status colors are reserved and always ship with an icon + label. */
 export const VERDICT_META = {
   go: {
     label: "Go",

@@ -40,7 +40,7 @@ function SectionHeader({
 }
 
 /**
- * Garage client root — owns the shared active-rig state
+ * Garage client root: owns the shared active-rig state
  * ('switchback:rig:v1') that the Explorer, Detail, and Plan pages read.
  */
 export function GarageClient() {
@@ -89,12 +89,12 @@ export function GarageClient() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      {/* 01 — rig presets */}
+      {/* 01: rig presets */}
       <section aria-label="Rig presets" className="py-12 sm:py-16">
         <SectionHeader
           step="01"
           title="Pick your platform"
-          blurb="Three ready-made builds — or a starting point for your own. The active rig follows you to the Explorer, trail pages, and trip builder."
+          blurb="Three ready-made builds, or a starting point for your own. The active rig follows you to the Explorer, trail pages, and trip builder."
         />
         <div className="mt-6">
           <RigSelector
@@ -105,7 +105,7 @@ export function GarageClient() {
         </div>
       </section>
 
-      {/* 02 — spec sheet */}
+      {/* 02: spec sheet */}
       <section aria-label="Spec sheet" className="pb-12 sm:pb-16">
         <SectionHeader
           step="02"
@@ -126,12 +126,12 @@ export function GarageClient() {
 
       <hr className="divider-route" />
 
-      {/* 03 — readiness matrix */}
+      {/* 03: readiness matrix */}
       <section aria-label="Trail readiness matrix" className="py-12 sm:py-16">
         <SectionHeader
           step="03"
           title="Trail readiness"
-          blurb="Every route in the catalog scored against this rig — tires, clearance, low range, traction, recovery, and fuel. Expand a row for the itemized verdict."
+          blurb="Every route in the catalog scored against this rig: tires, clearance, low range, traction, recovery, and fuel. Expand a row for the itemized verdict."
           aside={`SCORED AGAINST: ${rig.name.toUpperCase()}${modified ? " · MOD" : ""}`}
         />
         <div className="mt-6">
@@ -141,7 +141,7 @@ export function GarageClient() {
 
       <hr className="divider-route" />
 
-      {/* 04 — payload calculator */}
+      {/* 04: payload calculator */}
       <section aria-label="Loadout and payload calculator" className="py-12 sm:py-16">
         <SectionHeader
           step="04"

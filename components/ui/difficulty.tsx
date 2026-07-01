@@ -27,7 +27,7 @@ export function DifficultyDiamonds({
     <span
       className={`inline-flex items-center gap-1 ${className}`}
       role="img"
-      aria-label={`Difficulty ${level} of 5 — ${meta.label}`}
+      aria-label={`Difficulty ${level} of 5: ${meta.label}`}
     >
       {[1, 2, 3, 4, 5].map((i) => (
         <span

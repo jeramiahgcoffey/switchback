@@ -10,7 +10,7 @@ export const gear = [
   // ---------- recovery ----------
   { id: "gear-folding-shovel", name: "Folding shovel", category: "recovery", weightLbs: 6, essential: true },
   { id: "gear-work-gloves", name: "Work gloves", category: "recovery", weightLbs: 1, essential: true },
-  { id: "gear-recovery-boards", name: "Recovery boards (pair)", category: "recovery", weightLbs: 15, essential: true, conditions: { terrain: ["sand", "mud", "water-crossing"] }, note: "Self-recovery in sand and mud — the first thing off the rack." },
+  { id: "gear-recovery-boards", name: "Recovery boards (pair)", category: "recovery", weightLbs: 15, essential: true, conditions: { terrain: ["sand", "mud", "water-crossing"] }, note: "Self-recovery in sand and mud. The first thing off the rack." },
   { id: "gear-kinetic-rope", name: "Kinetic recovery rope 7/8\"", category: "recovery", weightLbs: 18, essential: true, conditions: { minDifficulty: 2 } },
   { id: "gear-soft-shackles", name: "Soft shackles (pair)", category: "recovery", weightLbs: 1, essential: true, conditions: { minDifficulty: 2 } },
   { id: "gear-tree-saver", name: "Tree saver strap", category: "recovery", weightLbs: 5, essential: false, conditions: { minDifficulty: 3, terrain: ["forest", "rock-garden"] } },
@@ -21,7 +21,7 @@ export const gear = [
 
   // ---------- camp ----------
   { id: "gear-headlamp", name: "Headlamp", category: "camp", weightLbs: 0.3, essential: true, qtyPerPerson: true },
-  { id: "gear-rtt", name: "Rooftop tent", category: "camp", weightLbs: 130, essential: true, conditions: { minDays: 2 }, note: "The single heaviest item on the truck — payload math starts here." },
+  { id: "gear-rtt", name: "Rooftop tent", category: "camp", weightLbs: 130, essential: true, conditions: { minDays: 2 }, note: "The single heaviest item on the truck. Payload math starts here." },
   { id: "gear-sleeping-bag", name: "Sleeping bag (20°F)", category: "camp", weightLbs: 4, essential: true, qtyPerPerson: true, conditions: { minDays: 2 } },
   { id: "gear-sleeping-pad", name: "Sleeping pad", category: "camp", weightLbs: 2, essential: true, qtyPerPerson: true, conditions: { minDays: 2 } },
   { id: "gear-bag-liner", name: "Cold-weather bag liner", category: "camp", weightLbs: 1.5, essential: false, qtyPerPerson: true, conditions: { minDays: 2, seasons: ["fall", "winter"] } },
@@ -29,14 +29,14 @@ export const gear = [
   { id: "gear-camp-table", name: "Camp table", category: "camp", weightLbs: 12, essential: false, conditions: { minDays: 2 } },
   { id: "gear-awning", name: "270° awning", category: "camp", weightLbs: 35, essential: false, conditions: { minDays: 2, terrain: ["desert", "sand", "slickrock"] }, note: "Shade is survival gear in the desert." },
   { id: "gear-lantern", name: "Rechargeable lantern", category: "camp", weightLbs: 1.5, essential: false, conditions: { minDays: 2 } },
-  { id: "gear-firewood", name: "Firewood (bundle)", category: "camp", weightLbs: 40, essential: false, conditions: { minDays: 2 }, note: "Buy where you burn — check fire restrictions." },
+  { id: "gear-firewood", name: "Firewood (bundle)", category: "camp", weightLbs: 40, essential: false, conditions: { minDays: 2 }, note: "Buy where you burn. Check fire restrictions." },
   { id: "gear-ground-tarp", name: "Ground tarp", category: "camp", weightLbs: 3, essential: false, conditions: { minDays: 2 } },
 
   // ---------- kitchen ----------
   { id: "gear-day-snacks", name: "Trail snacks", category: "kitchen", weightLbs: 2, essential: true, qtyPerPerson: true },
   { id: "gear-stove", name: "Two-burner camp stove", category: "kitchen", weightLbs: 12, essential: true, conditions: { minDays: 2 } },
   { id: "gear-stove-fuel", name: "Propane canisters (2)", category: "kitchen", weightLbs: 4, essential: true, conditions: { minDays: 2 } },
-  { id: "gear-fridge", name: "12V fridge (45L)", category: "kitchen", weightLbs: 50, essential: false, conditions: { minDays: 2 }, note: "Loaded weight — figure another 30 lb of food and ice-cold cans." },
+  { id: "gear-fridge", name: "12V fridge (45L)", category: "kitchen", weightLbs: 50, essential: false, conditions: { minDays: 2 }, note: "Loaded weight. Figure another 30 lb of food and ice-cold cans." },
   { id: "gear-cook-kit", name: "Cook kit (pots/pan)", category: "kitchen", weightLbs: 6, essential: true, conditions: { minDays: 2 } },
   { id: "gear-utensils", name: "Utensil + knife roll", category: "kitchen", weightLbs: 2, essential: true, conditions: { minDays: 2 } },
   { id: "gear-coffee-kit", name: "Coffee kit", category: "kitchen", weightLbs: 3, essential: false, note: "Non-negotiable for some crews." },
@@ -45,11 +45,11 @@ export const gear = [
   { id: "gear-wash-kit", name: "Camp wash kit", category: "kitchen", weightLbs: 2, essential: false, conditions: { minDays: 2 } },
 
   // ---------- water ----------
-  { id: "gear-drinking-water", name: "Drinking water (1 gal/person/day)", category: "water", weightLbs: 8.3, essential: true, qtyPerPerson: true, note: "8.3 lb per gallon — the honest line item most payload math forgets. Scale by trip days." },
+  { id: "gear-drinking-water", name: "Drinking water (1 gal/person/day)", category: "water", weightLbs: 8.3, essential: true, qtyPerPerson: true, note: "8.3 lb per gallon, the honest line item most payload math forgets. Scale by trip days." },
   { id: "gear-water-cube", name: "7-gal water container (full)", category: "water", weightLbs: 62, essential: true, conditions: { minDays: 2 } },
   { id: "gear-water-filter", name: "Water filter", category: "water", weightLbs: 1.5, essential: false, conditions: { minDays: 3 }, note: "Only worth carrying where there's water to filter." },
   { id: "gear-electrolytes", name: "Electrolyte mix", category: "water", weightLbs: 1, essential: false, qtyPerPerson: true, conditions: { seasons: ["summer"], terrain: ["desert", "sand", "slickrock"] } },
-  { id: "gear-jerry-water", name: "Extra 5-gal jerry (full)", category: "water", weightLbs: 45, essential: false, conditions: { minDays: 3, terrain: ["desert", "sand"] }, note: "Desert margin — dead weight everywhere else." },
+  { id: "gear-jerry-water", name: "Extra 5-gal jerry (full)", category: "water", weightLbs: 45, essential: false, conditions: { minDays: 3, terrain: ["desert", "sand"] }, note: "Desert margin, dead weight everywhere else." },
 
   // ---------- comms ----------
   { id: "gear-gmrs", name: "GMRS handheld radio", category: "comms", weightLbs: 1.5, essential: true, note: "Trail channel 16. License required, test not." },

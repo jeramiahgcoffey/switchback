@@ -40,7 +40,7 @@ export function ReadinessBadge({
   return (
     <span
       className={`inline-flex ${className}`}
-      title={`${rig.name} — ${headline ? headline.detail : "Every requirement checks out."}`}
+      title={`${rig.name}: ${headline ? headline.detail : "Every requirement checks out."}`}
     >
       <Badge tone={meta.tone}>
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />

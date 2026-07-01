@@ -6,7 +6,7 @@ import { ExplorerHeader, ExplorerSkeleton } from "@/components/explorer/explorer
 export const metadata: Metadata = {
   title: "Trail Explorer",
   description:
-    "Filter twelve curated overland routes by difficulty, terrain, season, trip length, and state — every trailhead plotted on a live overview map.",
+    "Filter twelve curated overland routes by difficulty, terrain, season, trip length, and state. Every trailhead plotted on a live overview map.",
 };
 
 /**

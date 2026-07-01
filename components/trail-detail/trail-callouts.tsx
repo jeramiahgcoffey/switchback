@@ -1,7 +1,7 @@
 import type { CellCoverage, Season, Trail } from "@/lib/types";
 
 /**
- * Season window, cell coverage, and resupply-gap callouts. Pure markup —
+ * Season window, cell coverage, and resupply-gap callouts. Pure markup that
  * renders on the server with the statically generated page.
  */
 
@@ -26,7 +26,7 @@ const COVERAGE_META: Record<
     label: "Spotty",
     bars: 1,
     text: "text-amber",
-    note: "Signal at ridgelines and pass tops only — don't bet a recovery on it.",
+    note: "Signal at ridgelines and pass tops only. Don't bet a recovery on it.",
   },
   good: {
     label: "Good",
@@ -116,7 +116,7 @@ export function TrailCallouts({ trail }: { trail: Trail }) {
             <span className="ml-1.5 text-sm text-sand-dim">mi</span>
           </p>
           <p className="mt-1 text-[11px] leading-4 text-sand-dim">
-            Longest stretch without a fuel or water opportunity — do the range
+            Longest stretch without a fuel or water opportunity. Do the range
             math before you commit.
           </p>
         </div>

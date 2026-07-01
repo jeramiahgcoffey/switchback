@@ -1,5 +1,5 @@
 /**
- * Loading/hydration placeholder for the Trip Wizard — shown while the
+ * Loading/hydration placeholder for the Trip Wizard, shown while the
  * route segment streams in and again while localStorage state hydrates,
  * so the layout never jumps.
  */

@@ -5,7 +5,7 @@
 
 const SHIMMER = "animate-pulse rounded bg-gunmetal-light/60";
 
-/** Static header band — real text, no shimmer, identical in page + loading. */
+/** Static header band. Real text, no shimmer, identical in page + loading. */
 export function ExplorerHeader() {
   return (
     <section className="relative overflow-hidden border-b border-edge bg-basalt-deep">
@@ -15,7 +15,7 @@ export function ExplorerHeader() {
         <h1 className="heading-display mt-2 text-4xl sm:text-6xl">Pick your line</h1>
         <p className="mt-4 max-w-xl text-sm text-sand-dim sm:text-base">
           Twelve curated overland routes, every trailhead on the map. Dial in
-          difficulty, terrain, season, trip length, and state — the URL carries
+          difficulty, terrain, season, trip length, and state. The URL carries
           your filters, so any view is shareable.
         </p>
       </div>

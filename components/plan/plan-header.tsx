@@ -1,5 +1,5 @@
 /**
- * Server-safe page hero for the Trip Builder — shared by app/plan/page.tsx
+ * Server-safe page hero for the Trip Builder, shared by app/plan/page.tsx
  * and app/plan/loading.tsx so the route-level loading UI paints the exact
  * frame the page resolves into.
  */

@@ -8,7 +8,7 @@ import { WAYPOINT_META } from "./waypoint-icons";
 
 /**
  * Hand-built SVG area chart of the trail's TrackPoints (elevation vs
- * distanceFromStartMi). `hoverIndex` is the single shared trackPosition —
+ * distanceFromStartMi). `hoverIndex` is the single shared trackPosition:
  * hovering the chart reports an index up to the parent, and an index set by
  * the map (or timeline) draws the cursor here. No chart library.
  */
@@ -149,7 +149,7 @@ export function ElevationProfile({
   const clampX = (vx: number, halfWidth = 44) =>
     Math.min(W - M.right - halfWidth, Math.max(M.left + halfWidth, vx));
 
-  // Tooltip box geometry — flips to the left near the right edge.
+  // Tooltip box geometry. Flips to the left near the right edge.
   const tooltip = hp
     ? (() => {
         const cx = geo.x(hp.distanceFromStartMi);
@@ -295,7 +295,7 @@ export function ElevationProfile({
             strokeWidth="2"
             opacity="0.85"
           >
-            <title>{`${w.name} — MI ${w.mileMarker.toFixed(1)}`}</title>
+            <title>{`${w.name}: MI ${w.mileMarker.toFixed(1)}`}</title>
           </line>
         ))}
 
@@ -402,7 +402,7 @@ export function ElevationProfile({
       </svg>
 
       <p className="mt-2 text-[11px] text-sand-dim">
-        Hover or scrub the chart to place a marker on the map — hover the route
+        Hover or scrub the chart to place a marker on the map. Hover the route
         line on the map to move the cursor here.
       </p>
     </section>

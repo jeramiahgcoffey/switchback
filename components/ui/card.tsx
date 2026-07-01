@@ -22,7 +22,7 @@ export function Card({
   );
 }
 
-/** Photo top with gradient scrim — drop an <img> or bg element inside. */
+/** Photo top with gradient scrim. Drop an <img> or bg element inside. */
 export function CardMedia({
   className = "",
   children,

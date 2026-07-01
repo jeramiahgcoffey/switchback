@@ -47,11 +47,11 @@ export function SiteFooter() {
         <hr className="divider-route my-8" />
         <div className="flex flex-col gap-2 text-xs text-sand-dim sm:flex-row sm:items-center sm:justify-between">
           <p>
-            Trail tracks, waypoints, and elevations are illustrative demo data —
+            Trail tracks, waypoints, and elevations are illustrative demo data,
             not for navigation.
           </p>
           <p className="readout text-xs text-sand-dim">
-            38.5733 N 109.5498 W — basecamp
+            38.5733 N 109.5498 W · basecamp
           </p>
         </div>
       </div>

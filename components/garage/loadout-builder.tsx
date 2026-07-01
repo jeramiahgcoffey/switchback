@@ -243,7 +243,7 @@ export function LoadoutBuilder({
           })}
         </div>
 
-        {/* weight budget — sticky instrument panel */}
+        {/* weight budget: sticky instrument panel */}
         <div className="lg:sticky lg:top-20 lg:self-start">
           <div className="card-surface p-4 sm:p-5">
             <div className="flex items-baseline justify-between gap-3">
@@ -261,7 +261,7 @@ export function LoadoutBuilder({
               />
             </div>
 
-            {/* status line — icon + label, never color alone */}
+            {/* status line: icon + label, never color alone */}
             <p
               className={`mt-4 flex items-center gap-2 rounded border px-3 py-2 text-xs ${
                 state === "over"
@@ -278,17 +278,17 @@ export function LoadoutBuilder({
                   {Math.abs(remaining).toLocaleString("en-US", {
                     maximumFractionDigits: 1,
                   })}{" "}
-                  lb — shed weight before the trailhead.
+                  lb. Shed weight before the trailhead.
                 </>
               ) : state === "warn" ? (
                 <>
                   <IconAlert size={13} className="shrink-0" />
-                  Past {PAYLOAD_WARN_PCT}% of payload — watch the heavy items.
+                  Past {PAYLOAD_WARN_PCT}% of payload. Watch the heavy items.
                 </>
               ) : (
                 <>
                   <IconCheck size={13} className="shrink-0" />
-                  Within payload — margin left for firewood and souvenirs.
+                  Within payload. Margin left for firewood and souvenirs.
                 </>
               )}
             </p>

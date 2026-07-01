@@ -120,7 +120,7 @@ function MatrixRow({
 
 /**
  * Readiness matrix: matchRigToTrail() mapped across all 12 trails.
- * Pure derived state — re-scores live as the spec sheet changes.
+ * Pure derived state. Re-scores live as the spec sheet changes.
  */
 export function ReadinessMatrix({ rig }: { rig: RigProfile }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);

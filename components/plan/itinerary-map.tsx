@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Step 2 map — route polyline split into per-day segments over the shared
+ * Step 2 map: route polyline split into per-day segments over the shared
  * Leaflet wrapper. Hovering a day card brightens its segment; night stops
  * are numbered diamond markers, fuel stops amber, trailhead/exit ember.
  *
@@ -116,7 +116,7 @@ export default function ItineraryMap({
           key={w.id}
           position={[w.lat, w.lng]}
           icon={icons.fuel}
-          title={`${w.name} — fuel`}
+          title={`${w.name}: fuel`}
         />
       ))}
       {nightWps.map(
@@ -126,7 +126,7 @@ export default function ItineraryMap({
               key={wp.id}
               position={[wp.lat, wp.lng]}
               icon={icons.night(day)}
-              title={`Night ${day} — ${wp.name}`}
+              title={`Night ${day}: ${wp.name}`}
             />
           ),
       )}
@@ -134,14 +134,14 @@ export default function ItineraryMap({
         <Marker
           position={[startWp.lat, startWp.lng]}
           icon={icons.start}
-          title={`Start — ${startWp.name}`}
+          title={`Start: ${startWp.name}`}
         />
       )}
       {endWp && endWp.id !== startWp?.id && (
         <Marker
           position={[endWp.lat, endWp.lng]}
           icon={icons.end}
-          title={`End — ${endWp.name}`}
+          title={`End: ${endWp.name}`}
         />
       )}
     </LeafletMap>

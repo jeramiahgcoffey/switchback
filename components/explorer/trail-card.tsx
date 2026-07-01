@@ -59,7 +59,7 @@ export function TrailCard({
           }`}
         >
           <CardMedia className="h-36 shrink-0">
-            {/* Local, illustrative artwork — plain <img> keeps SVGs unoptimized-safe. */}
+            {/* Local, illustrative artwork: plain <img> keeps SVGs unoptimized-safe. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={trail.heroImage}

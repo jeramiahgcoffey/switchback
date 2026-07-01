@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Step 2 — Itinerary. splitIntoDays() segments the route on campsite
+ * Step 2: Itinerary. splitIntoDays() segments the route on campsite
  * waypoints; each day card reads out mileage, estimated wheel hours, camp,
  * and resupply flags. buildFuelCheck() drives the fuel-range warning
  * banner and per-leg no-fuel chips. Hovering a day highlights its
@@ -146,7 +146,7 @@ function DayCard({
         ) : (
           <Badge tone="sand">
             <FlagIcon size={12} />
-            Off trail — trip complete
+            Off trail, trip complete
           </Badge>
         )}
         {resupply.map((w) => (
@@ -206,7 +206,7 @@ export function StepItinerary({
         <div>
           <h2 className="heading-display text-xl">{trail.name}</h2>
           <p className="mt-1 text-xs text-sand-dim">
-            Anchored on campsite waypoints — wheel hours assume ~
+            Anchored on campsite waypoints. Wheel hours assume ~
             {SPEED_BY_DIFFICULTY[trail.difficulty]} mph for difficulty{" "}
             {trail.difficulty} terrain.
           </p>
@@ -276,8 +276,8 @@ export function StepItinerary({
                   no-fuel stretches up to{" "}
                   <span className="readout">{fuel.worstGapMiles} mi</span>
                 </>
-              )}{" "}
-              — beyond the {rig.name}&apos;s effective off-road range of{" "}
+              )},{" "}
+              beyond the {rig.name}&apos;s effective off-road range of{" "}
               <span className="readout">~{fuel.effectiveRangeMiles} mi</span>{" "}
               ({rig.fuelRangeMiles} mi rated, derated for trail burn). Carry
               auxiliary fuel or pick a longer-range rig in step one.
@@ -289,7 +289,7 @@ export function StepItinerary({
         <div className="flex items-center gap-3 rounded-lg border border-sage/40 bg-sage/10 px-4 py-3">
           <FuelIcon size={18} className="shrink-0 text-sage-bright" />
           <p className="text-sm text-sand">
-            Fuel checks out — worst gap{" "}
+            Fuel checks out. Worst gap{" "}
             <span className="readout">{fuel.worstGapMiles} mi</span> vs an
             effective off-road range of{" "}
             <span className="readout">~{fuel.effectiveRangeMiles} mi</span> for
