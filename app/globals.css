@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Switchback theme — "GPS head unit at dusk meets premium gear brand".
+ * Dark-first. Custom palette (all text pairs meet WCAG AA on basalt):
+ *   basalt    near-black base        #15181C
+ *   gunmetal  surface cards          #1E2126
+ *   ember     burnt-orange accent    #E8622C  (CTAs, polylines, active)
+ *   sage      olive success          #8A9A7B  (Good-to-Go)
+ *   amber     caution                #D9A441
+ *   rust      no-go / difficulty 5   #B3402C
+ *   bone      headings               #EDE6DA
+ *   sand      secondary text         #D8CDBB
+ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* palette */
+  --color-basalt: #15181c;
+  --color-basalt-deep: #101215;
+  --color-gunmetal: #1e2126;
+  --color-gunmetal-light: #262b31;
+  --color-ember: #e8622c;
+  --color-ember-bright: #f07b49;
+  --color-ember-dim: #b84a20;
+  --color-sage: #8a9a7b;
+  --color-sage-bright: #a3b394;
+  --color-amber: #d9a441;
+  --color-rust: #b3402c;
+  --color-rust-bright: #d05a44;
+  --color-bone: #ede6da;
+  --color-sand: #d8cdbb;
+  --color-sand-dim: #a69d8b;
+  /* 1px sand-tone hairlines for cards, rules, tick marks */
+  --color-edge: rgb(216 205 187 / 0.14);
+  --color-edge-strong: rgb(216 205 187 / 0.28);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* type — wired to next/font variables set in app/layout.tsx */
+  --font-display: var(--font-barlow-condensed);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* sturdy cards: 8px radius */
+  --radius-card: 8px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-basalt);
+  color: var(--color-sand);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-ember);
+  color: var(--color-basalt-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Display headings: gauge-cluster / National Park signage energy. */
+  .heading-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-bone);
+  }
+
+  /* Stat labels: small, tracked-out, condensed. */
+  .stat-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.75rem;
+    color: var(--color-sand-dim);
+  }
+
+  /* Instrument readouts: every number reads like a gauge. */
+  .readout {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-bone);
+  }
+
+  /* Faint topographic contours for hero and empty states (~3% opacity). */
+  .bg-topo {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640' viewBox='0 0 640 640'%3E%3Cg fill='none' stroke='%23EDE6DA' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M160 220c0-50 44-88 104-88s112 32 112 84-48 96-108 96-108-42-108-92z'/%3E%3Cpath d='M132 224c0-66 58-118 132-118s144 42 144 110-62 126-140 126S132 290 132 224z'/%3E%3Cpath d='M104 228c0-82 72-148 160-148s176 52 176 136-76 156-172 156S104 310 104 228z'/%3E%3Cpath d='M76 232c0-98 86-178 188-178s208 62 208 162-90 186-204 186S76 330 76 232z'/%3E%3Cpath d='M48 236c0-114 100-208 216-208s240 72 240 188-104 216-236 216S48 350 48 236z'/%3E%3Cpath d='M480 540c0-30 26-52 62-52s66 20 66 50-28 56-64 56-64-24-64-54z'/%3E%3Cpath d='M452 544c0-44 38-76 90-76s94 28 94 72-40 80-92 80-92-32-92-76z'/%3E%3Cpath d='M424 548c0-58 50-100 118-100s122 36 122 94-52 104-120 104-120-40-120-98z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 640px 640px;
+  }
+
+  /* Dashed-line "route" section divider. */
+  .divider-route {
+    height: 0;
+    border: none;
+    border-top: 2px dashed var(--color-edge-strong);
+  }
+
+  /* Sturdy card: 8px radius, 1px sand-tone border, gunmetal surface. */
+  .card-surface {
+    background-color: var(--color-gunmetal);
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-card);
+  }
+
+  /* Restrained hover lift, 150–200ms ease-out. */
+  .hover-lift {
+    transition:
+      transform 180ms ease-out,
+      border-color 180ms ease-out,
+      box-shadow 180ms ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-edge-strong);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  /* Warm-dusk grade for OSM tiles inside the shared Leaflet wrapper. */
+  .map-tiles-dark {
+    filter: brightness(0.62) saturate(0.45) contrast(1.06) sepia(0.22)
+      hue-rotate(-8deg);
+  }
+}
+
+/* Leaflet container defaults (the wrapper sizes itself to its parent). */
+.leaflet-container {
+  background: var(--color-basalt-deep);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift,
+  .hover-lift:hover {
+    transition: none;
+    transform: none;
+  }
 }

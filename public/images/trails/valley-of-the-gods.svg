@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A1B12"/>
+      <stop offset="0.55" stop-color="#4A2A18"/>
+      <stop offset="1" stop-color="#8A4A24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.38" r="0.5">
+      <stop offset="0" stop-color="#E8622C" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#E8622C" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="95" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.93 0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0.06 0"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect width="1200" height="800" fill="url(#glow)"/>
+  <circle cx="864" cy="288" r="60" fill="#E8622C" opacity="0.85"/>
+  <g fill="none" stroke="#EDE6DA" stroke-opacity="0.05" stroke-width="1.2"><ellipse cx="630" cy="317" rx="118" ry="88" transform="rotate(13.5 630 317)"/><ellipse cx="630" cy="317" rx="178" ry="124" transform="rotate(10.7 630 317)"/><ellipse cx="630" cy="317" rx="232" ry="183" transform="rotate(-7.4 630 317)"/><ellipse cx="630" cy="317" rx="291" ry="247" transform="rotate(7.4 630 317)"/><ellipse cx="630" cy="317" rx="419" ry="289" transform="rotate(1.7 630 317)"/><ellipse cx="630" cy="317" rx="471" ry="300" transform="rotate(6.6 630 317)"/><ellipse cx="630" cy="317" rx="457" ry="312" transform="rotate(-7.4 630 317)"/></g>
+  <path d="M0 800 L0 416 L67 387 L133 387 L200 528 L267 464 L333 380 L400 380 L467 480 L533 436 L600 359 L667 359 L733 437 L800 354 L867 479 L933 479 L1000 464 L1067 464 L1133 467 L1200 463 L1200 800 Z" fill="#241A14" opacity="0.9"/>
+  <path d="M0 800 L0 528 L55 546 L109 573 L164 516 L218 516 L273 542 L327 542 L382 544 L436 544 L491 511 L545 511 L600 496 L655 496 L709 542 L764 542 L818 551 L873 551 L927 592 L982 545 L1036 545 L1091 507 L1145 489 L1200 489 L1200 800 Z" fill="#1C1410"/>
+  <path d="M0 800 L0 640 L46 671 L92 666 L138 618 L185 618 L231 641 L277 613 L323 586 L369 625 L415 645 L462 645 L508 645 L554 645 L600 631 L646 631 L692 675 L738 675 L785 617 L831 617 L877 627 L923 627 L969 637 L1015 637 L1062 641 L1108 646 L1154 635 L1200 645 L1200 800 Z" fill="#15100C"/>
+  <path d="M-20 605 C 300 555, 480 645, 744 575 S 1080 505, 1220 525" fill="none" stroke="#E8622C" stroke-width="3" stroke-dasharray="12 9" stroke-linecap="round" opacity="0.55"/>
+  <rect width="1200" height="800" filter="url(#grain)"/>
+</svg>
