@@ -1,0 +1,87 @@
+/*
+ * Trip Wizard motion — restrained and purposeful.
+ * Spring tick on checklist items, drawn checkmark, animated ring/gauge
+ * fills, and a soft step transition. All disabled under reduced motion.
+ */
+
+/* Step content entering the viewport. */
+.stepEnter {
+  animation: stepIn 260ms ease-out both;
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Checklist checkbox: color snap + spring pop when checked. */
+.tickBox {
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out;
+}
+
+.tickPop {
+  animation: tickPop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tickPop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Checkmark stroke draws itself in just after the pop starts. */
+.tickPath {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: tickDraw 220ms ease-out 60ms forwards;
+}
+
+@keyframes tickDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Progress ring fill. */
+.ringProgress {
+  transition:
+    stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke 300ms ease-out;
+}
+
+/* Horizontal gauge fills (per-day mileage, per-category progress). */
+.gaugeFill {
+  transition:
+    width 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepEnter,
+  .tickPop,
+  .tickPath {
+    animation: none;
+  }
+  .tickPath {
+    stroke-dashoffset: 0;
+  }
+  .tickBox,
+  .ringProgress,
+  .gaugeFill {
+    transition: none;
+  }
+}

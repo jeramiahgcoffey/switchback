@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
+import { GarageClient } from "@/components/garage/garage-client";
 
 export const metadata: Metadata = {
   title: "Garage",
@@ -8,27 +8,37 @@ export const metadata: Metadata = {
 };
 
 /**
- * FOUNDATION STUB — the Garage (rig presets, instrument-panel spec sheet,
- * readiness matrix, payload calculator, localStorage persistence) is owned
- * by the `garage-readiness` feature.
+ * Garage — rig presets and an instrument-panel spec sheet, a readiness
+ * matrix across the whole trail catalog, and the payload calculator.
+ * All user state lives client-side in localStorage ('switchback:rig:v1')
+ * so the Explorer, Detail, and Plan pages reflect the same rig.
  */
 export default function GaragePage() {
   return (
-    <div className="relative overflow-hidden">
-      <div aria-hidden className="absolute inset-0 bg-topo" />
-      <div className="relative mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
-        <p className="stat-label">Garage</p>
-        <h1 className="heading-display mt-2 text-5xl">Ready the rig</h1>
-        <p className="mx-auto mt-4 max-w-md text-sm text-sand-dim">
-          Spec sheets, the readiness matrix, and the payload calculator are on
-          the lift. Trails are open in the meantime.
-        </p>
-        <div className="mt-8 flex justify-center">
-          <Button href="/trails" variant="outline">
-            Browse trails
-          </Button>
+    <div>
+      {/* page hero */}
+      <section className="relative overflow-hidden border-b border-edge">
+        <div aria-hidden className="absolute inset-0 bg-topo" />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-basalt via-transparent to-transparent"
+        />
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <p className="readout text-xs text-sand-dim sm:text-sm">
+            SPEC SHEET · READINESS MATRIX · WEIGHT BUDGET
+          </p>
+          <h1 className="heading-display mt-3 text-5xl sm:text-6xl">
+            Ready the rig
+          </h1>
+          <p className="mt-4 max-w-xl text-sm text-sand sm:text-base">
+            Pick a platform, dial the specs, and let the math do the arguing:
+            every trail in the catalog scored against your build, and a payload
+            budget that knows what a rooftop tent actually weighs.
+          </p>
         </div>
-      </div>
+      </section>
+
+      <GarageClient />
     </div>
   );
 }

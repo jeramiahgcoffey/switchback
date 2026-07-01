@@ -2,10 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DifficultyChip } from "@/components/ui/difficulty";
 import { getTrailBySlug, trails } from "@/lib/data/trails";
-import { formatCoords, formatFeet, formatMiles } from "@/lib/derive";
+import { formatCoords } from "@/lib/derive";
+import { TrailDetailView } from "@/components/trail-detail/trail-detail-view";
+import { RequirementsPanel } from "@/components/trail-detail/requirements-panel";
+import { TrailCallouts } from "@/components/trail-detail/trail-callouts";
+import { TrailStatBand } from "@/components/trail-detail/stat-band";
+import { PlanCta } from "@/components/trail-detail/plan-cta";
+
+/** Every trail page is statically generated at build time. */
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return trails.map((t) => ({ slug: t.slug }));
@@ -19,15 +26,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const trail = getTrailBySlug(slug);
   if (!trail) return { title: "Trail not found" };
-  return { title: trail.name, description: trail.summary };
+  return {
+    title: trail.name,
+    description: trail.summary,
+    openGraph: {
+      title: `${trail.name} — Switchback`,
+      description: trail.summary,
+      images: [{ url: trail.heroImage }],
+    },
+  };
 }
 
-/**
- * FOUNDATION STUB — the full Trail Detail (route polyline map, typed
- * waypoint markers, hover-synced SVG elevation profile, requirements panel)
- * is owned by the `trail-detail` feature. This stub keeps every trail route
- * statically generated and navigable.
- */
 export default async function TrailDetailPage({
   params,
 }: {
@@ -39,49 +48,94 @@ export default async function TrailDetailPage({
 
   const trailhead = trail.waypoints.find((w) => w.kind === "trailhead");
 
+  const stats = [
+    { label: "Distance", value: trail.distanceMiles, unit: "mi" },
+    { label: "Est. days", value: trail.estimatedDays, unit: "d" },
+    { label: "Elevation gain", value: trail.elevationGainFt, unit: "ft" },
+    { label: "Max elevation", value: trail.maxElevationFt, unit: "ft" },
+  ];
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
-      <Link
-        href="/trails"
-        className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-sand-dim transition-colors hover:text-bone"
-      >
-        ← All trails
-      </Link>
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <DifficultyChip level={trail.difficulty} />
-        <Badge tone="sand">
-          {trail.region}, {trail.state}
-        </Badge>
-      </div>
-      <h1 className="heading-display mt-4 text-5xl sm:text-6xl">{trail.name}</h1>
-      {trailhead ? (
-        <p className="readout mt-2 text-sm text-sand-dim">
-          {formatCoords(trailhead.lat, trailhead.lng)}
-        </p>
-      ) : null}
-      <p className="mt-6 max-w-2xl text-base text-sand">{trail.summary}</p>
-
-      <dl className="card-surface mt-10 grid grid-cols-2 gap-px sm:grid-cols-4">
-        {[
-          { label: "Distance", value: formatMiles(trail.distanceMiles) },
-          { label: "Days", value: String(trail.estimatedDays) },
-          { label: "Elevation gain", value: formatFeet(trail.elevationGainFt) },
-          { label: "Max elevation", value: formatFeet(trail.maxElevationFt) },
-        ].map((s) => (
-          <div key={s.label} className="p-5">
-            <dt className="stat-label">{s.label}</dt>
-            <dd className="readout mt-1 text-xl">{s.value}</dd>
+    <div>
+      {/* ------------------------------------------------ hero */}
+      <section className="relative overflow-hidden border-b border-edge">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${trail.heroImage})` }}
+        />
+        <div aria-hidden className="absolute inset-0 bg-topo" />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-basalt via-basalt/70 to-basalt/30"
+        />
+        <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-10 sm:px-6 sm:pb-16 sm:pt-14">
+          <Link
+            href="/trails"
+            className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-sand-dim transition-colors duration-150 hover:text-bone"
+          >
+            ← All trails
+          </Link>
+          <div className="mt-6 flex flex-wrap items-center gap-2.5">
+            <DifficultyChip level={trail.difficulty} />
+            <Badge tone="sand">
+              {trail.region}, {trail.state}
+            </Badge>
+            {trail.terrain.map((t) => (
+              <Badge key={t} tone="neutral">
+                {t.replace("-", " ")}
+              </Badge>
+            ))}
           </div>
-        ))}
-      </dl>
+          <h1 className="heading-display mt-4 max-w-4xl text-5xl leading-[0.95] sm:text-7xl">
+            {trail.name}
+          </h1>
+          {trailhead ? (
+            <p className="readout mt-3 text-sm text-sand-dim">
+              {formatCoords(trailhead.lat, trailhead.lng)} · TRAILHEAD
+            </p>
+          ) : null}
+          <p className="mt-5 max-w-2xl text-base text-sand sm:text-lg">
+            {trail.summary}
+          </p>
+        </div>
+      </section>
 
-      <p className="mt-10 text-sm text-sand-dim">
-        Interactive map, elevation profile, and the rig requirements panel are
-        on the way.
-      </p>
-      <div className="mt-6">
-        <Button href={`/plan?trail=${trail.slug}`}>Plan this trip</Button>
+      {/* ------------------------------------------------ stat band */}
+      <section
+        aria-label="Trail stats"
+        className="border-b border-edge bg-basalt-deep"
+      >
+        <TrailStatBand stats={stats} />
+      </section>
+
+      {/* ------------------------------------------------ map / chart / rail */}
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <section
+          aria-label="Route map, elevation profile, and rig check"
+          className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]"
+        >
+          <TrailDetailView trail={trail} />
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <RequirementsPanel trail={trail} />
+            <TrailCallouts trail={trail} />
+          </aside>
+        </section>
+
+        <hr className="divider-route my-12" />
+
+        {/* ------------------------------------------------ trail notes */}
+        <section aria-label="Trail notes" className="max-w-3xl">
+          <p className="stat-label">Trail notes</p>
+          <h2 className="heading-display mt-2 text-3xl sm:text-4xl">
+            Know before you go
+          </h2>
+          <p className="mt-4 text-base leading-7 text-sand">{trail.description}</p>
+        </section>
       </div>
+
+      {/* ------------------------------------------------ sticky CTA */}
+      <PlanCta trail={trail} />
     </div>
   );
 }
