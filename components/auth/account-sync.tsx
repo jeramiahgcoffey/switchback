@@ -33,16 +33,22 @@ function snapshotOf(rig: ActiveRigState, plan: TripPlan | null): string {
   return JSON.stringify({ rig, plan });
 }
 
-async function putProfile(rig: ActiveRigState, plan: TripPlan | null, updatedAt: string) {
+async function putProfile(
+  rig: ActiveRigState,
+  plan: TripPlan | null,
+  updatedAt: string,
+): Promise<boolean> {
   try {
-    await fetch("/api/profile", {
+    const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ activeRig: rig, tripPlan: plan, updatedAt }),
     });
+    return res.ok;
   } catch {
-    // Offline / transient — localStorage still holds the change; next edit or
-    // sign-in reconciles it.
+    // Offline / transient — a failed write leaves serverSnapshot unchanged, so
+    // the next edit or sign-in reconciliation retries it.
+    return false;
   }
 }
 
@@ -59,8 +65,12 @@ export function AccountSync() {
   const snapshot = useMemo(() => snapshotOf(rig, plan), [rig, plan]);
 
   // Latest values, read inside async callbacks without widening effect deps.
+  // Written in an effect (not during render) so it reflects committed state and
+  // stays consistent under Strict Mode / concurrent re-renders.
   const latest = useRef({ rig, plan, updatedAt, snapshot });
-  latest.current = { rig, plan, updatedAt, snapshot };
+  useEffect(() => {
+    latest.current = { rig, plan, updatedAt, snapshot };
+  });
 
   const reconciledUser = useRef<string | null>(null);
   const serverSnapshot = useRef<string | null>(null); // what the account holds
@@ -80,6 +90,7 @@ export function AccountSync() {
     if (!userId || !hydrated || reconciledUser.current === userId) return;
     reconciledUser.current = userId;
     let cancelled = false;
+    let done = false;
 
     (async () => {
       let profile: UserProfile | null = null;
@@ -98,35 +109,41 @@ export function AccountSync() {
 
       const local = latest.current;
       if (!profile) {
-        // Account is empty: claim the local rig/plan.
+        // Account is empty: claim the local rig/plan. Only mark synced once the
+        // write is confirmed, so a failed claim retries instead of going quiet.
         const ts = local.updatedAt || new Date().toISOString();
-        serverSnapshot.current = local.snapshot;
         if (!local.updatedAt) setUpdatedAt(ts);
-        await putProfile(local.rig, local.plan, ts);
-        return;
-      }
-
-      const serverSnap = snapshotOf(profile.activeRig, profile.tripPlan);
-      const localNewer =
-        local.updatedAt && profile.updatedAt && local.updatedAt > profile.updatedAt;
-
-      if (serverSnap === local.snapshot) {
-        serverSnapshot.current = serverSnap; // already in sync
-      } else if (localNewer) {
-        serverSnapshot.current = local.snapshot; // local wins: push
-        await putProfile(local.rig, local.plan, local.updatedAt);
+        if (await putProfile(local.rig, local.plan, ts)) {
+          serverSnapshot.current = local.snapshot;
+        }
       } else {
-        // Server wins: apply it locally (batched -> one snapshot).
-        serverSnapshot.current = serverSnap;
-        baseline.current = serverSnap;
-        setRig(profile.activeRig);
-        setPlan(profile.tripPlan);
-        setUpdatedAt(profile.updatedAt);
+        const serverSnap = snapshotOf(profile.activeRig, profile.tripPlan);
+        const localNewer =
+          local.updatedAt && profile.updatedAt && local.updatedAt > profile.updatedAt;
+
+        if (serverSnap === local.snapshot) {
+          serverSnapshot.current = serverSnap; // already in sync
+        } else if (localNewer) {
+          if (await putProfile(local.rig, local.plan, local.updatedAt)) {
+            serverSnapshot.current = local.snapshot; // local wins: pushed
+          }
+        } else {
+          // Server wins: apply it locally (batched -> one snapshot).
+          serverSnapshot.current = serverSnap;
+          baseline.current = serverSnap;
+          setRig(profile.activeRig);
+          setPlan(profile.tripPlan);
+          setUpdatedAt(profile.updatedAt);
+        }
       }
+      done = true;
     })();
 
     return () => {
       cancelled = true;
+      // If we were torn down before finishing (Strict Mode remount, unmount
+      // mid-flight), release the slot so the next mount re-runs reconciliation.
+      if (!done) reconciledUser.current = null;
     };
   }, [userId, hydrated, setRig, setPlan, setUpdatedAt]);
 
@@ -148,10 +165,11 @@ export function AccountSync() {
 
     if (userId && reconciledUser.current === userId) {
       if (pushTimer.current) clearTimeout(pushTimer.current);
-      pushTimer.current = setTimeout(() => {
+      pushTimer.current = setTimeout(async () => {
         const now = latest.current;
-        serverSnapshot.current = now.snapshot;
-        void putProfile(now.rig, now.plan, now.updatedAt || ts);
+        if (await putProfile(now.rig, now.plan, now.updatedAt || ts)) {
+          serverSnapshot.current = now.snapshot; // only mark synced on success
+        }
       }, PUSH_DEBOUNCE_MS);
     }
   }, [snapshot, hydrated, userId, setUpdatedAt]);
