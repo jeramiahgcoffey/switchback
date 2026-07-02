@@ -9,8 +9,9 @@
  * Regenerate: see scripts note in the repo history; edit by hand freely.
  */
 import type { Trail } from "@/lib/types";
+import { generatedTrails } from "@/lib/data/trails.generated";
 
-export const trails = [
+const seedTrails = [
   {
     id: "trail-white-rim-trail",
     slug: "white-rim-trail",
@@ -2218,6 +2219,18 @@ export const trails = [
     heroImage: "/images/trails/magruder-corridor.svg",
   },
 ] satisfies Trail[];
+
+/**
+ * Full catalog: hand-authored seed entries merged with the imported catalog
+ * from `npm run import-trails`. On a slug collision the imported trail wins;
+ * its geometry is real source data where the seed's was illustrative.
+ */
+const merged = new Map<string, Trail>(seedTrails.map((t) => [t.slug, t]));
+for (const t of generatedTrails) merged.set(t.slug, t);
+
+export const trails: Trail[] = [...merged.values()].sort((a, b) =>
+  a.name.localeCompare(b.name),
+);
 
 export function getTrailBySlug(slug: string): Trail | undefined {
   return trails.find((t) => t.slug === slug);

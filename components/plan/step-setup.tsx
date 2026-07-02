@@ -178,7 +178,7 @@ export function StepSetup({
         <SectionHeading
           index="01"
           title="Choose your trail"
-          hint={selectedTrail ? selectedTrail.region : "12 curated routes"}
+          hint={selectedTrail ? selectedTrail.region : `${trails.length} routes`}
         />
         <div
           role="radiogroup"

@@ -206,9 +206,11 @@ export function StepItinerary({
         <div>
           <h2 className="heading-display text-xl">{trail.name}</h2>
           <p className="mt-1 text-xs text-sand-dim">
-            Anchored on campsite waypoints. Wheel hours assume ~
-            {SPEED_BY_DIFFICULTY[trail.difficulty]} mph for difficulty{" "}
-            {trail.difficulty} terrain.
+            {trail.waypoints.some((w) => w.kind === "campsite")
+              ? "Anchored on campsite waypoints. "
+              : "Single-push route; no campsites mapped. "}
+            Wheel hours assume ~{SPEED_BY_DIFFICULTY[trail.difficulty]} mph for
+            difficulty {trail.difficulty} terrain.
           </p>
           <div className="mt-3 flex items-center gap-3">
             <span id="split-days-label" className="stat-label">

@@ -14,7 +14,8 @@ export function ExplorerHeader() {
         <p className="stat-label">Trail Explorer</p>
         <h1 className="heading-display mt-2 text-4xl sm:text-6xl">Pick your line</h1>
         <p className="mt-4 max-w-xl text-sm text-sand-dim sm:text-base">
-          Twelve curated overland routes, every trailhead on the map. Dial in
+          Real overland routes from Colorado's San Juans to Moab canyon
+          country, every trailhead on the map. Dial in
           difficulty, terrain, season, trip length, and state. The URL carries
           your filters, so any view is shareable.
         </p>
