@@ -173,3 +173,27 @@ export interface Readiness {
   verdict: "go" | "caution" | "no-go";
   reasons: { label: string; status: ReadinessStatus; detail: string }[];
 }
+
+/**
+ * What the Garage persists: preset id, optional spec overrides, loadout.
+ * Lives here (not in the "use client" storage module) so server code — the
+ * profile API — can import the type.
+ */
+export interface ActiveRigState {
+  rigId: string;
+  /** Spec-sheet edits layered over the preset. */
+  customSpecs?: Partial<Omit<RigProfile, "id" | "name" | "vehicle">>;
+  /** Gear item ids toggled onto the build. */
+  gearIds: string[];
+}
+
+/**
+ * Per-user account document, and the `/api/profile` payload. Mirrors the two
+ * synced localStorage blobs plus a client-set `updatedAt` for last-write-wins.
+ */
+export interface UserProfile {
+  activeRig: ActiveRigState;
+  tripPlan: TripPlan | null;
+  /** ISO timestamp of the last local edit; drives sign-in reconciliation. */
+  updatedAt: string;
+}

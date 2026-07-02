@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Inter, JetBrains_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { AccountSync } from "@/components/auth/account-sync";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
@@ -41,6 +42,7 @@ export default function RootLayout({
       className={`${barlowCondensed.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <AccountSync />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

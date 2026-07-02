@@ -17,11 +17,16 @@
  */
 
 import { useCallback, useRef, useSyncExternalStore } from "react";
-import type { RigProfile, TripPlan } from "@/lib/types";
+import type { ActiveRigState, RigProfile, TripPlan } from "@/lib/types";
 import { DEFAULT_RIG_ID, getRigById, rigs } from "@/lib/data/rigs";
+
+// Re-exported so existing consumers can keep importing it from here.
+export type { ActiveRigState } from "@/lib/types";
 
 export const RIG_STORAGE_KEY = "switchback:rig:v1";
 export const PLAN_STORAGE_KEY = "switchback:plan:v1";
+/** ISO timestamp of the last user edit to rig/plan; owned by AccountSync. */
+export const SYNC_UPDATED_AT_KEY = "switchback:updatedAt:v1";
 
 /** Same-tab change notification (the native 'storage' event is cross-tab only). */
 const LOCAL_EVENT = "switchback:storage";
@@ -131,15 +136,6 @@ export function useLocalStorage<T>(
 // ---------------------------------------------------------------------------
 // Active rig — key 'switchback:rig:v1'
 // ---------------------------------------------------------------------------
-
-/** What the Garage persists: preset id, optional spec overrides, loadout. */
-export interface ActiveRigState {
-  rigId: string;
-  /** Spec-sheet edits layered over the preset. */
-  customSpecs?: Partial<Omit<RigProfile, "id" | "name" | "vehicle">>;
-  /** Gear item ids toggled onto the build. */
-  gearIds: string[];
-}
 
 export const DEFAULT_ACTIVE_RIG_STATE: ActiveRigState = {
   rigId: DEFAULT_RIG_ID,
