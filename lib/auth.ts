@@ -27,12 +27,22 @@ const githubEnabled = Boolean(
   process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET,
 );
 
+// Production (custom domain) is auto-trusted via BETTER_AUTH_URL. For Vercel
+// preview deploys, trust only THIS deployment's own hostnames, taken from
+// Vercel's injected system env vars (set only for this project's deployments) --
+// never a wildcard on the shared *.vercel.app suffix, which anyone could match
+// by naming a project "switchback-...". Empty locally (localhost is the baseURL).
+const trustedOrigins = [
+  process.env.VERCEL_URL,
+  process.env.VERCEL_BRANCH_URL,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+]
+  .filter(Boolean)
+  .map((host) => `https://${host}`);
+
 export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
-  // Production (custom domain) is auto-trusted via BETTER_AUTH_URL. Vercel
-  // preview deploys get dynamic *.vercel.app origins; trust this project's so
-  // sign-in works there too (origin check would otherwise reject them).
-  trustedOrigins: ["https://switchback-*.vercel.app"],
+  trustedOrigins,
   emailAndPassword: {
     enabled: true,
     // requireEmailVerification omitted (false) -> instant signup, no SMTP.

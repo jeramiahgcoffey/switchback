@@ -33,8 +33,20 @@ export function AuthShell({
 /**
  * Only allow same-origin relative paths as a post-auth redirect target, so a
  * crafted `?redirect=` can't bounce users to an external site.
+ *
+ * Resolve against a fixed placeholder origin and require the result to stay on
+ * it. This rejects absolute URLs ("http://evil.com"), protocol-relative ones
+ * ("//evil.com"), and backslash tricks ("/\evil.com") that browsers normalize
+ * to off-site navigations. Returns only the path portion, never a full URL.
  */
 export function safeRedirect(value: string | undefined): string {
-  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  if (!value) return "/";
+  try {
+    const base = "http://localhost";
+    const url = new URL(value, base);
+    if (url.origin === base) return url.pathname + url.search + url.hash;
+  } catch {
+    // malformed target -> fall through to the default
+  }
   return "/";
 }
