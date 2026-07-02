@@ -29,6 +29,10 @@ const githubEnabled = Boolean(
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
+  // Production (custom domain) is auto-trusted via BETTER_AUTH_URL. Vercel
+  // preview deploys get dynamic *.vercel.app origins; trust this project's so
+  // sign-in works there too (origin check would otherwise reject them).
+  trustedOrigins: ["https://switchback-*.vercel.app"],
   emailAndPassword: {
     enabled: true,
     // requireEmailVerification omitted (false) -> instant signup, no SMTP.
