@@ -29,6 +29,20 @@ interface OverpassWay {
 
 interface OverpassResponse {
   elements: OverpassWay[];
+  /** Overpass reports timeouts/errors here with an HTTP 200 body. */
+  remark?: string;
+}
+
+/**
+ * Reject soft errors: Overpass returns HTTP 200 with an empty `elements`
+ * array and a `remark` (e.g. "runtime error: Query timed out") when a mirror
+ * is overloaded. Without this guard that empty body would be cached and stick
+ * across runs, and the mirror fallback (which only advances on a throw) would
+ * be bypassed, silently emptying the catalog for this region.
+ */
+function isUsableOverpass(data: OverpassResponse): boolean {
+  if (data.remark && /error|timed out|timeout/i.test(data.remark)) return false;
+  return Array.isArray(data.elements) && data.elements.length > 0;
 }
 
 function buildQuery(bbox: [number, number, number, number]): string {
@@ -59,6 +73,7 @@ async function fetchOverpass(
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         },
         refresh,
+        isUsableOverpass,
       );
     } catch (err) {
       lastErr = err;

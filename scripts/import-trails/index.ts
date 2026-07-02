@@ -16,6 +16,7 @@ import { pullMvumCandidates } from "./mvum.ts";
 import { pullOverpassCandidates } from "./overpass.ts";
 import { synthesizeTrail } from "./synthesize.ts";
 import { emit } from "./emit.ts";
+import { validateTrails } from "./validate.ts";
 
 const args = process.argv.slice(2);
 const refresh = args.includes("--refresh");
@@ -68,6 +69,18 @@ async function run(): Promise<void> {
   }
 
   emit(trails);
+
+  // Gate on the same invariants the app depends on (strictly-increasing track
+  // distances for nearestTrackIndex, in-bounds trackIndex, day-split sanity).
+  // Runs after emit so hero images exist; a failure aborts non-zero so bad
+  // output is never silently committed.
+  const failures = validateTrails(trails);
+  if (failures.length) {
+    console.error(`\nvalidation failed (${failures.length}):`);
+    for (const f of failures) console.error(`  FAIL ${f}`);
+    process.exit(1);
+  }
+  console.log(`validated: ${trails.length} trails passed`);
 }
 
 run().catch((err) => {

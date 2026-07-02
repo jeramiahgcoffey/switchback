@@ -22,13 +22,10 @@ import {
 } from "./geo.ts";
 import { getElevationsFt } from "./elevation.ts";
 import { OVERRIDES } from "./overrides.ts";
-
-/**
- * Average wheeling speed by difficulty, mph. Mirrors SPEED_BY_DIFFICULTY in
- * lib/derive.ts (kept in sync by hand; scripts cannot import through the
- * app's "@/" alias at runtime).
- */
-const SPEED_MPH: Record<Difficulty, number> = { 1: 25, 2: 18, 3: 12, 4: 8, 5: 4 };
+// Single source of truth for wheeling speeds: the same constant the app's
+// day-split (splitIntoDays) uses, so generated estimatedDays can never drift
+// from the planner. derive.ts imports only types, so Node loads it directly.
+import { SPEED_BY_DIFFICULTY } from "../../lib/derive.ts";
 
 /** Requirements ramp, consistent with the hand-authored seed catalog. */
 const REQUIREMENTS: Record<Difficulty, TrailRequirements> = {
@@ -318,7 +315,7 @@ export async function synthesizeTrail(
   const name = override.name ?? c.name;
   const estimatedDays =
     override.estimatedDays ??
-    Math.max(1, Math.ceil(distanceMiles / (SPEED_MPH[difficulty] * 6)));
+    Math.max(1, Math.ceil(distanceMiles / (SPEED_BY_DIFFICULTY[difficulty] * 6)));
 
   const copy = templateCopy(c, region, {
     miles: distanceMiles,

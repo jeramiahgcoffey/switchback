@@ -94,7 +94,11 @@ async function fetchLayer(
       (data) => Array.isArray(data.features),
     );
     all.push(...page.features);
-    if (page.features.length < PAGE_SIZE) break;
+    // Page on the server's own truncation flag, not a PAGE_SIZE comparison:
+    // a service whose maxRecordCount is below PAGE_SIZE returns a short first
+    // page with more rows behind it, and a length check would drop them.
+    // The empty-page guard prevents an infinite loop if the flag is stuck.
+    if (!page.properties?.exceededTransferLimit || page.features.length === 0) break;
   }
   return all;
 }
