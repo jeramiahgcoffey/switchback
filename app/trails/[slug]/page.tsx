@@ -131,6 +131,16 @@ export default async function TrailDetailPage({
             Know before you go
           </h2>
           <p className="mt-4 text-base leading-7 text-sand">{trail.description}</p>
+          {trail.dataSource ? (
+            <p className="readout mt-6 text-xs text-sand-dim">
+              Route data: {trail.dataSource.name}
+              {trail.dataSource.attribution
+                ? ` · ${trail.dataSource.attribution}`
+                : ""}{" "}
+              · {trail.dataSource.license}. Simplified for planning, not for
+              navigation.
+            </p>
+          ) : null}
         </section>
       </div>
 

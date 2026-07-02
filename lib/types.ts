@@ -76,6 +76,16 @@ export interface TrailRequirements {
   winchRecommended: boolean;
 }
 
+/**
+ * Provenance for imported trail data. Drives the attribution line on trail
+ * pages; ODbL sources (OpenStreetMap) legally require it.
+ */
+export interface TrailDataSource {
+  name: string;
+  license: string;
+  attribution?: string;
+}
+
 export interface Trail {
   id: string;
   slug: string;
@@ -97,6 +107,8 @@ export interface Trail {
   track: TrackPoint[];
   waypoints: Waypoint[];
   heroImage: string;
+  /** Present on imported trails; absent on hand-authored seed data. */
+  dataSource?: TrailDataSource;
 }
 
 export interface RigProfile {

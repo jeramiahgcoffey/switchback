@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A1612"/>
+      <stop offset="0.55" stop-color="#3E2E25"/>
+      <stop offset="1" stop-color="#7A4E33"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.73" cy="0.25" r="0.5">
+      <stop offset="0" stop-color="#D9A441" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#D9A441" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="70" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.93 0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0.06 0"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect width="1200" height="800" fill="url(#glow)"/>
+  <circle cx="880" cy="199" r="56" fill="#D9A441" opacity="0.85"/>
+  <path d="M0,800 L0,302 L120,326 L240,343 L360,315 L480,376 L600,310 L720,260 L840,476 L960,502 L1080,560 L1200,515 L1200,800 Z" fill="#5C3D2E" fill-opacity="0.9"/>
+  <path d="M0,800 L0,424 L63,443 L126,444 L189,469 L253,458 L316,438 L379,435 L442,473 L505,485 L568,424 L632,430 L695,380 L758,390 L821,480 L884,566 L947,591 L1011,587 L1074,640 L1137,634 L1200,597 L1200,800 Z" fill="#452E24" fill-opacity="0.95"/>
+  <path d="M0,800 L0,537 L32,551 L63,554 L95,559 L126,554 L158,559 L189,575 L221,576 L253,566 L284,526 L316,549 L347,566 L379,546 L411,570 L442,579 L474,591 L505,589 L537,564 L568,537 L600,537 L632,543 L663,538 L695,500 L726,526 L758,509 L789,523 L821,585 L853,633 L884,657 L916,673 L947,679 L979,704 L1011,675 L1042,705 L1074,720 L1105,702 L1137,715 L1168,700 L1200,684 L1200,800 Z" fill="#30211B" fill-opacity="1"/>
+  <path d="M0,800 L0,642 L16,648 L32,654 L47,657 L63,656 L79,659 L95,661 L111,652 L126,657 L142,661 L158,661 L174,667 L189,675 L205,673 L221,676 L237,667 L253,667 L268,649 L284,632 L300,630 L316,652 L332,660 L347,667 L363,664 L379,650 L395,657 L411,671 L426,662 L442,678 L458,689 L474,688 L489,691 L505,687 L521,675 L537,665 L553,657 L568,642 L584,645 L600,642 L616,650 L632,647 L647,644 L663,643 L679,617 L695,610 L711,615 L726,633 L742,621 L758,617 L774,618 L789,630 L805,662 L821,683 L837,722 L853,725 L868,739 L884,746 L900,751 L916,760 L932,749 L947,764 L963,774 L979,786 L995,780 L1011,761 L1026,775 L1042,787 L1058,786 L1074,800 L1089,788 L1105,784 L1121,786 L1137,796 L1153,786 L1168,783 L1184,774 L1200,769 L1200,800 Z" fill="#1E1613" fill-opacity="1"/>
+  <rect width="1200" height="800" filter="url(#grain)"/>
+</svg>

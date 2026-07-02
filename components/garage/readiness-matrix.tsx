@@ -119,7 +119,7 @@ function MatrixRow({
 }
 
 /**
- * Readiness matrix: matchRigToTrail() mapped across all 12 trails.
+ * Readiness matrix: matchRigToTrail() mapped across the full trail catalog.
  * Pure derived state. Re-scores live as the spec sheet changes.
  */
 export function ReadinessMatrix({ rig }: { rig: RigProfile }) {

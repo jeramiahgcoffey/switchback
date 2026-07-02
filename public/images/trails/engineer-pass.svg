@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#161A20"/>
+      <stop offset="0.55" stop-color="#25303E"/>
+      <stop offset="1" stop-color="#4A5A6E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.76" cy="0.06" r="0.5">
+      <stop offset="0" stop-color="#D9A441" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#D9A441" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="58" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.93 0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0.06 0"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect width="1200" height="800" fill="url(#glow)"/>
+  <circle cx="911" cy="50" r="56" fill="#D9A441" opacity="0.85"/>
+  <path d="M0,800 L0,560 L171,491 L343,446 L514,403 L686,358 L857,313 L1029,267 L1200,260 L1200,800 Z" fill="#3A4656" fill-opacity="0.9"/>
+  <path d="M0,800 L0,640 L92,608 L185,580 L277,566 L369,541 L462,525 L554,504 L646,483 L738,465 L831,446 L923,426 L1015,405 L1108,386 L1200,380 L1200,800 Z" fill="#2C3644" fill-opacity="0.95"/>
+  <path d="M0,800 L0,720 L48,709 L96,693 L144,680 L192,669 L240,664 L288,657 L336,650 L384,636 L432,630 L480,623 L528,614 L576,605 L624,596 L672,587 L720,581 L768,572 L816,563 L864,556 L912,549 L960,539 L1008,531 L1056,522 L1104,512 L1152,505 L1200,500 L1200,800 Z" fill="#1F2733" fill-opacity="1"/>
+  <path d="M0,800 L0,800 L24,793 L49,791 L73,783 L98,776 L122,771 L147,765 L171,758 L196,756 L220,755 L245,752 L269,748 L294,746 L318,742 L343,740 L367,735 L392,728 L416,724 L441,722 L465,719 L490,716 L514,714 L539,709 L563,705 L588,701 L612,698 L637,693 L661,689 L686,685 L710,683 L735,680 L759,676 L784,672 L808,669 L833,664 L857,660 L882,658 L906,656 L931,652 L955,647 L980,644 L1004,640 L1029,637 L1053,633 L1078,629 L1102,624 L1127,621 L1151,615 L1176,614 L1200,610 L1200,800 Z" fill="#151B24" fill-opacity="1"/>
+  <rect width="1200" height="800" filter="url(#grain)"/>
+</svg>

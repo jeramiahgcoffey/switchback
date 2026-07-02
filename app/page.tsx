@@ -28,7 +28,7 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Pick a trail",
-    body: "Filter twelve curated overland routes by difficulty, terrain, season, and state. Every trailhead plotted on the map.",
+    body: "Filter real US overland routes by difficulty, terrain, season, and state. Every trailhead plotted on the map.",
     href: "/trails",
     cta: "Browse trails",
   },
