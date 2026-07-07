@@ -154,6 +154,9 @@ export interface DayPlan {
 
 export interface TripPlan {
   id: string;
+  /** Optional user label for the saved-trip library; falls back to a derived
+   * "<trail> · <date>" when absent. */
+  name?: string;
   trailSlug: string;
   /** ISO date string, e.g. "2026-07-04". */
   startDate: string;
@@ -193,7 +196,11 @@ export interface ActiveRigState {
  */
 export interface UserProfile {
   activeRig: ActiveRigState;
+  /** The active/working trip (mirrors `switchback:plan:v1`). */
   tripPlan: TripPlan | null;
+  /** Saved-trip library (mirrors `switchback:trips:v1`). Empty on legacy
+   * profiles written before multi-trip shipped. */
+  trips: TripPlan[];
   /** ISO timestamp of the last local edit; drives sign-in reconciliation. */
   updatedAt: string;
 }
