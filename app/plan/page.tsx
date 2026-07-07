@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PlanHeader } from "@/components/plan/plan-header";
-import { TripWizard } from "@/components/plan/trip-wizard";
+import { PlanWorkspace } from "@/components/plan/plan-workspace";
 import { WizardSkeleton } from "@/components/plan/wizard-skeleton";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function PlanPage() {
       <PlanHeader />
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <Suspense fallback={<WizardSkeleton />}>
-          <TripWizard />
+          <PlanWorkspace />
         </Suspense>
       </div>
     </div>
