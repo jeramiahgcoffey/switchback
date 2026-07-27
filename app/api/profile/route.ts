@@ -121,11 +121,11 @@ function sanitizeTripPlan(v: unknown): TripPlan | null {
 function sanitizeTrips(v: unknown): TripPlan[] {
   if (!Array.isArray(v)) return [];
   const out: TripPlan[] = [];
-  for (const item of v.slice(0, MAX_TRIPS)) {
-    const t = sanitizeTripPlan(item);
+  for (let i = v.length - 1; i >= 0 && out.length < MAX_TRIPS; i -= 1) {
+    const t = sanitizeTripPlan(v[i]);
     if (t) out.push(t);
   }
-  return out;
+  return out.reverse();
 }
 
 export async function GET() {
