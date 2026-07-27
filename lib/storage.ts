@@ -16,14 +16,29 @@
  * object literal, or the snapshot identity will churn.
  */
 
-import { useCallback, useRef, useSyncExternalStore } from "react";
-import type { ActiveRigState, RigProfile, TripPlan } from "@/lib/types";
-import { DEFAULT_RIG_ID, getRigById, rigs } from "@/lib/data/rigs";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import type {
+  ActiveRigState,
+  RigBuild,
+  RigLibraryState,
+  RigProfile,
+  TripPlan,
+} from "@/lib/types";
+import {
+  DEFAULT_ACTIVE_RIG_STATE,
+  DEFAULT_RIG_LIBRARY_STATE,
+  MAX_RIG_BUILDS,
+  getActiveRigBuild,
+  newRigBuildId,
+  resolveRigState,
+  rigLibraryFromLegacy,
+} from "@/lib/rig-library";
 
 // Re-exported so existing consumers can keep importing it from here.
 export type { ActiveRigState } from "@/lib/types";
 
 export const RIG_STORAGE_KEY = "switchback:rig:v1";
+export const RIG_LIBRARY_STORAGE_KEY = "switchback:rig-library:v1";
 export const PLAN_STORAGE_KEY = "switchback:plan:v1";
 /** The saved-trip library (multi-trip): an array of full TripPlans by id. */
 export const TRIPS_STORAGE_KEY = "switchback:trips:v1";
@@ -136,13 +151,206 @@ export function useLocalStorage<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Active rig — key 'switchback:rig:v1'
+// Rig library — key 'switchback:rig-library:v1'
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_ACTIVE_RIG_STATE: ActiveRigState = {
-  rigId: DEFAULT_RIG_ID,
-  gearIds: [],
-};
+export { DEFAULT_ACTIVE_RIG_STATE } from "@/lib/rig-library";
+
+function readLegacyRig(): ActiveRigState | null {
+  const raw = safeRead(RIG_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ActiveRigState;
+  } catch {
+    return null;
+  }
+}
+
+// Many readiness components can mount useActiveRig at once. Only the first
+// hook instance needs to perform the one-time legacy write.
+let legacyMigrationStarted = false;
+
+export function useRigLibrary(): {
+  library: RigLibraryState;
+  activeBuild: RigBuild;
+  setLibrary: (
+    next:
+      | RigLibraryState
+      | ((prev: RigLibraryState) => RigLibraryState),
+  ) => void;
+  updateActiveRig: (
+    next: ActiveRigState | ((prev: ActiveRigState) => ActiveRigState),
+  ) => void;
+  createRig: () => void;
+  duplicateRig: (id: string) => void;
+  activateRig: (id: string) => void;
+  renameRig: (id: string, name: string) => void;
+  removeRig: (id: string) => void;
+  hydrated: boolean;
+} {
+  const [library, setLibrary, { hydrated }] =
+    useLocalStorage<RigLibraryState>(
+      RIG_LIBRARY_STORAGE_KEY,
+      DEFAULT_RIG_LIBRARY_STATE,
+    );
+  const hasLibrary = hydrated && safeRead(RIG_LIBRARY_STORAGE_KEY) !== null;
+  const legacyRig = hydrated && !hasLibrary ? readLegacyRig() : null;
+  const migrationPending = hydrated && !hasLibrary && legacyRig !== null;
+
+  useEffect(() => {
+    if (!migrationPending || !legacyRig || legacyMigrationStarted) return;
+    legacyMigrationStarted = true;
+    setLibrary(rigLibraryFromLegacy(legacyRig, new Date().toISOString()));
+  }, [legacyRig, migrationPending, setLibrary]);
+
+  const activeBuild = getActiveRigBuild(library);
+  const ready = hydrated && !migrationPending;
+
+  useEffect(() => {
+    if (
+      !ready ||
+      library.rigs.length === 0 ||
+      activeBuild.id === library.activeRigId
+    ) {
+      return;
+    }
+    setLibrary((prev) => {
+      if (prev.rigs.length === 0) return prev;
+      const resolved = getActiveRigBuild(prev);
+      return resolved.id === prev.activeRigId
+        ? prev
+        : { ...prev, activeRigId: resolved.id };
+    });
+  }, [
+    ready,
+    activeBuild.id,
+    library.activeRigId,
+    library.rigs.length,
+    setLibrary,
+  ]);
+
+  const updateActiveRig = useCallback(
+    (next: ActiveRigState | ((prev: ActiveRigState) => ActiveRigState)) => {
+      setLibrary((prev) => {
+        const active = getActiveRigBuild(prev);
+        const rig =
+          typeof next === "function"
+            ? (next as (value: ActiveRigState) => ActiveRigState)(active.rig)
+            : next;
+        const timestamp = new Date().toISOString();
+        return {
+          ...prev,
+          rigs: prev.rigs.map((build) =>
+            build.id === active.id
+              ? { ...build, rig, updatedAt: timestamp }
+              : build,
+          ),
+        };
+      });
+    },
+    [setLibrary],
+  );
+
+  const createRig = useCallback(() => {
+    setLibrary((prev) => {
+      if (prev.rigs.length >= MAX_RIG_BUILDS) return prev;
+      const timestamp = new Date().toISOString();
+      const id = newRigBuildId();
+      const build: RigBuild = {
+        id,
+        name: `Rig ${prev.rigs.length + 1}`,
+        rig: { ...DEFAULT_ACTIVE_RIG_STATE, gearIds: [] },
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      return { activeRigId: id, rigs: [...prev.rigs, build] };
+    });
+  }, [setLibrary]);
+
+  const duplicateRig = useCallback(
+    (id: string) => {
+      setLibrary((prev) => {
+        if (prev.rigs.length >= MAX_RIG_BUILDS) return prev;
+        const source = prev.rigs.find((build) => build.id === id);
+        if (!source) return prev;
+        const timestamp = new Date().toISOString();
+        const copyId = newRigBuildId();
+        const copy: RigBuild = {
+          ...source,
+          id: copyId,
+          name: `${source.name} Copy`,
+          rig: {
+            ...source.rig,
+            customSpecs: source.rig.customSpecs
+              ? { ...source.rig.customSpecs }
+              : undefined,
+            gearIds: [...source.rig.gearIds],
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+        return { activeRigId: copyId, rigs: [...prev.rigs, copy] };
+      });
+    },
+    [setLibrary],
+  );
+
+  const activateRig = useCallback(
+    (id: string) => {
+      setLibrary((prev) =>
+        prev.rigs.some((build) => build.id === id)
+          ? { ...prev, activeRigId: id }
+          : prev,
+      );
+    },
+    [setLibrary],
+  );
+
+  const renameRig = useCallback(
+    (id: string, name: string) => {
+      const clean = name.trim().slice(0, 256);
+      if (!clean) return;
+      setLibrary((prev) => ({
+        ...prev,
+        rigs: prev.rigs.map((build) =>
+          build.id === id
+            ? { ...build, name: clean, updatedAt: new Date().toISOString() }
+            : build,
+        ),
+      }));
+    },
+    [setLibrary],
+  );
+
+  const removeRig = useCallback(
+    (id: string) => {
+      setLibrary((prev) => {
+        if (prev.rigs.length <= 1) return prev;
+        const rigs = prev.rigs.filter((build) => build.id !== id);
+        if (rigs.length === prev.rigs.length) return prev;
+        return {
+          activeRigId:
+            prev.activeRigId === id ? rigs[rigs.length - 1].id : prev.activeRigId,
+          rigs,
+        };
+      });
+    },
+    [setLibrary],
+  );
+
+  return {
+    library,
+    activeBuild,
+    setLibrary,
+    updateActiveRig,
+    createRig,
+    duplicateRig,
+    activateRig,
+    renameRig,
+    removeRig,
+    hydrated: ready,
+  };
+}
 
 /**
  * The one rig every page agrees on. Returns the resolved `RigProfile`
@@ -152,16 +360,20 @@ export const DEFAULT_ACTIVE_RIG_STATE: ActiveRigState = {
 export function useActiveRig(): {
   rig: RigProfile;
   state: ActiveRigState;
+  build: RigBuild;
   setState: (next: ActiveRigState | ((prev: ActiveRigState) => ActiveRigState)) => void;
   hydrated: boolean;
 } {
-  const [state, setState, { hydrated }] = useLocalStorage<ActiveRigState>(
-    RIG_STORAGE_KEY,
-    DEFAULT_ACTIVE_RIG_STATE,
-  );
-  const preset = getRigById(state.rigId) ?? getRigById(DEFAULT_RIG_ID) ?? rigs[0];
-  const rig: RigProfile = { ...preset, ...state.customSpecs };
-  return { rig, state, setState, hydrated };
+  const { activeBuild, updateActiveRig, hydrated } = useRigLibrary();
+  const state = activeBuild.rig;
+  const rig = resolveRigState(state);
+  return {
+    rig,
+    state,
+    build: activeBuild,
+    setState: updateActiveRig,
+    hydrated,
+  };
 }
 
 // ---------------------------------------------------------------------------

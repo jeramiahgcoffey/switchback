@@ -7,11 +7,11 @@
  * timestamp (`switchback:updatedAt:v1`) and:
  *
  * - On sign-in, reconciles once: if the account has no profile yet it CLAIMS
- *   the current local rig/plan (so anonymous work is kept); otherwise it
+ *   the current local rig library/plan (so anonymous work is kept); otherwise it
  *   resolves local vs server by last-write-wins on `updatedAt`.
  * - While signed in, debounce-pushes later local edits to the account.
  *
- * Loop safety: `serverSnapshotRef` tracks the rig/plan snapshot the server is
+ * Loop safety: `serverSnapshotRef` tracks the rig-library/plan snapshot the server is
  * known to hold. A local change equal to it is a remote apply (skip); a change
  * that differs is a genuine user edit (bump timestamp + push). React batches
  * the reconcile's setState calls, so applied state lands as one snapshot.
@@ -22,11 +22,12 @@ import { useSession } from "@/lib/auth-client";
 import {
   SYNC_UPDATED_AT_KEY,
   TRIPS_STORAGE_KEY,
-  useActiveRig,
   useLocalStorage,
+  useRigLibrary,
   useTripPlan,
 } from "@/lib/storage";
-import type { ActiveRigState, TripPlan, UserProfile } from "@/lib/types";
+import { getActiveRigBuild } from "@/lib/rig-library";
+import type { RigLibraryState, TripPlan, UserProfile } from "@/lib/types";
 
 const PUSH_DEBOUNCE_MS = 800;
 
@@ -34,15 +35,15 @@ const PUSH_DEBOUNCE_MS = 800;
 const EMPTY_TRIPS: TripPlan[] = [];
 
 function snapshotOf(
-  rig: ActiveRigState,
+  rigLibrary: RigLibraryState,
   plan: TripPlan | null,
   trips: TripPlan[],
 ): string {
-  return JSON.stringify({ rig, plan, trips });
+  return JSON.stringify({ rigLibrary, plan, trips });
 }
 
 async function putProfile(
-  rig: ActiveRigState,
+  rigLibrary: RigLibraryState,
   plan: TripPlan | null,
   trips: TripPlan[],
   updatedAt: string,
@@ -51,7 +52,13 @@ async function putProfile(
     const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activeRig: rig, tripPlan: plan, trips, updatedAt }),
+      body: JSON.stringify({
+        rigLibrary,
+        activeRig: getActiveRigBuild(rigLibrary).rig,
+        tripPlan: plan,
+        trips,
+        updatedAt,
+      }),
     });
     if (!res.ok) return null;
     return ((await res.json()) as { profile?: UserProfile }).profile ?? null;
@@ -64,41 +71,50 @@ async function putProfile(
 
 export function AccountSync() {
   const { data: session } = useSession();
-  const { state: rig, setState: setRig } = useActiveRig();
-  const { plan, setPlan } = useTripPlan();
-  const [trips, setTrips] = useLocalStorage<TripPlan[]>(
+  const {
+    library: rigLibrary,
+    setLibrary: setRigLibrary,
+    hydrated: rigsHydrated,
+  } = useRigLibrary();
+  const { plan, setPlan, hydrated: planHydrated } = useTripPlan();
+  const [trips, setTrips, { hydrated: tripsHydrated }] = useLocalStorage<
+    TripPlan[]
+  >(
     TRIPS_STORAGE_KEY,
     EMPTY_TRIPS,
   );
-  const [updatedAt, setUpdatedAt, { hydrated }] = useLocalStorage(
+  const [updatedAt, setUpdatedAt, { hydrated: syncHydrated }] = useLocalStorage(
     SYNC_UPDATED_AT_KEY,
     "",
   );
+  const hydrated =
+    rigsHydrated && planHydrated && tripsHydrated && syncHydrated;
 
   const userId = session?.user?.id ?? null;
   const snapshot = useMemo(
-    () => snapshotOf(rig, plan, trips),
-    [rig, plan, trips],
+    () => snapshotOf(rigLibrary, plan, trips),
+    [rigLibrary, plan, trips],
   );
 
   // Latest values, read inside async callbacks without widening effect deps.
   // Written in an effect (not during render) so it reflects committed state and
   // stays consistent under Strict Mode / concurrent re-renders.
-  const latest = useRef({ rig, plan, trips, updatedAt, snapshot });
+  const latest = useRef({ rigLibrary, plan, trips, updatedAt, snapshot });
   useEffect(() => {
-    latest.current = { rig, plan, trips, updatedAt, snapshot };
+    latest.current = { rigLibrary, plan, trips, updatedAt, snapshot };
   });
 
   const reconciledUser = useRef<string | null>(null);
   const serverSnapshot = useRef<string | null>(null); // what the account holds
   const baseline = useRef<string | null>(null); // last snapshot we processed
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncGeneration = useRef(0);
 
   const applyServerProfile = useCallback(
     (profile: UserProfile) => {
       const serverTrips = profile.trips ?? [];
       const serverSnap = snapshotOf(
-        profile.activeRig,
+        profile.rigLibrary,
         profile.tripPlan,
         serverTrips,
       );
@@ -107,21 +123,36 @@ export function AccountSync() {
       const local = latest.current;
       if (serverSnap !== local.snapshot || profile.updatedAt !== local.updatedAt) {
         baseline.current = serverSnap;
-        setRig(profile.activeRig);
+        setRigLibrary(profile.rigLibrary);
         setPlan(profile.tripPlan);
         setTrips(serverTrips);
         setUpdatedAt(profile.updatedAt);
       }
     },
-    [setRig, setPlan, setTrips, setUpdatedAt],
+    [setRigLibrary, setPlan, setTrips, setUpdatedAt],
   );
 
-  // Reset when signed out; the local tier stays usable anonymously.
+  // Reset on account changes; the local tier stays usable anonymously.
+  // The generation invalidates an already-started push so its response cannot
+  // apply a previous account's profile after sign-out, account switch, or
+  // unmount.
   useEffect(() => {
-    if (!userId) {
-      reconciledUser.current = null;
-      serverSnapshot.current = null;
+    const generation = ++syncGeneration.current;
+    if (pushTimer.current) {
+      clearTimeout(pushTimer.current);
+      pushTimer.current = null;
     }
+    reconciledUser.current = null;
+    serverSnapshot.current = null;
+    return () => {
+      if (syncGeneration.current === generation) {
+        syncGeneration.current += 1;
+      }
+      if (pushTimer.current) {
+        clearTimeout(pushTimer.current);
+        pushTimer.current = null;
+      }
+    };
   }, [userId]);
 
   // Reconcile once per sign-in.
@@ -152,13 +183,18 @@ export function AccountSync() {
         // write is confirmed, so a failed claim retries instead of going quiet.
         const ts = local.updatedAt || new Date().toISOString();
         if (!local.updatedAt) setUpdatedAt(ts);
-        const saved = await putProfile(local.rig, local.plan, local.trips, ts);
+        const saved = await putProfile(
+          local.rigLibrary,
+          local.plan,
+          local.trips,
+          ts,
+        );
         if (cancelled) return;
         if (saved) applyServerProfile(saved);
       } else {
         const serverTrips = profile.trips ?? [];
         const serverSnap = snapshotOf(
-          profile.activeRig,
+          profile.rigLibrary,
           profile.tripPlan,
           serverTrips,
         );
@@ -169,7 +205,7 @@ export function AccountSync() {
           applyServerProfile(profile); // already in sync
         } else if (localNewer) {
           const saved = await putProfile(
-            local.rig,
+            local.rigLibrary,
             local.plan,
             local.trips,
             local.updatedAt,
@@ -210,24 +246,27 @@ export function AccountSync() {
 
     if (userId && reconciledUser.current === userId) {
       if (pushTimer.current) clearTimeout(pushTimer.current);
+      const pushUser = userId;
+      const pushGeneration = syncGeneration.current;
       pushTimer.current = setTimeout(async () => {
+        pushTimer.current = null;
         const now = latest.current;
         const saved = await putProfile(
-          now.rig,
+          now.rigLibrary,
           now.plan,
           now.trips,
           now.updatedAt || ts,
         );
-        if (saved) applyServerProfile(saved);
+        if (
+          saved &&
+          syncGeneration.current === pushGeneration &&
+          reconciledUser.current === pushUser
+        ) {
+          applyServerProfile(saved);
+        }
       }, PUSH_DEBOUNCE_MS);
     }
   }, [snapshot, hydrated, userId, setUpdatedAt, applyServerProfile]);
-
-  useEffect(() => {
-    return () => {
-      if (pushTimer.current) clearTimeout(pushTimer.current);
-    };
-  }, []);
 
   return null;
 }

@@ -3,7 +3,12 @@
  * three wizard steps. No React, no side effects.
  */
 import { getTrailBySlug } from "@/lib/data/trails";
-import type { Season, Trail, TripPlan } from "@/lib/types";
+import type {
+  Season,
+  Trail,
+  TripPlan,
+  TripRigSnapshot,
+} from "@/lib/types";
 
 export type WizardStep = 1 | 2 | 3;
 
@@ -22,6 +27,8 @@ export interface PlanDraft {
   startDate: string;
   partySize: number;
   rigId: string;
+  rigBuildId?: string;
+  rigSnapshot: TripRigSnapshot;
   targetDays: number;
   /** GearItem id -> checked. */
   checklist: Record<string, boolean>;
