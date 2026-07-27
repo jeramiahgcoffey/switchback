@@ -2,7 +2,9 @@
 
 import type { RigProfile } from "@/lib/types";
 import { DEFAULT_RIG_ID, getRigById, rigs } from "@/lib/data/rigs";
-import { useActiveRig, type ActiveRigState } from "@/lib/storage";
+import { resolveRigState } from "@/lib/rig-library";
+import { useRigLibrary, type ActiveRigState } from "@/lib/storage";
+import { SavedRigsBar } from "@/components/garage/saved-rigs-bar";
 import { RigSelector } from "@/components/garage/rig-selector";
 import {
   SpecPanel,
@@ -44,7 +46,19 @@ function SectionHeader({
  * ('switchback:rig:v1') that the Explorer, Detail, and Plan pages read.
  */
 export function GarageClient() {
-  const { rig, state, setState } = useActiveRig();
+  const {
+    library,
+    activeBuild,
+    updateActiveRig: setState,
+    createRig,
+    duplicateRig,
+    activateRig,
+    renameRig,
+    removeRig,
+    hydrated,
+  } = useRigLibrary();
+  const state = activeBuild.rig;
+  const rig = resolveRigState(state);
   const preset =
     getRigById(state.rigId) ?? getRigById(DEFAULT_RIG_ID) ?? rigs[0];
   const modified = Object.keys(state.customSpecs ?? {}).length > 0;
@@ -89,6 +103,20 @@ export function GarageClient() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      {hydrated ? (
+        <div className="pt-10 sm:pt-12">
+          <SavedRigsBar
+            rigs={library.rigs}
+            activeRigId={library.activeRigId}
+            onCreate={createRig}
+            onDuplicate={duplicateRig}
+            onActivate={activateRig}
+            onRename={renameRig}
+            onDelete={removeRig}
+          />
+        </div>
+      ) : null}
+
       {/* 01: rig presets */}
       <section aria-label="Rig presets" className="py-12 sm:py-16">
         <SectionHeader

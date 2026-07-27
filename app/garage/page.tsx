@@ -4,13 +4,13 @@ import { GarageClient } from "@/components/garage/garage-client";
 export const metadata: Metadata = {
   title: "Garage",
   description:
-    "Rig presets, spec sheets, a trail readiness matrix, and a payload calculator.",
+    "Named rig builds, spec sheets, a trail readiness matrix, and a payload calculator.",
 };
 
 /**
- * Garage: rig presets and an instrument-panel spec sheet, a readiness
+ * Garage: a named-build library, rig presets and an instrument-panel spec sheet, a readiness
  * matrix across the whole trail catalog, and the payload calculator.
- * All user state lives client-side in localStorage ('switchback:rig:v1')
+ * All user state lives client-side in localStorage ('switchback:rig-library:v1')
  * so the Explorer, Detail, and Plan pages reflect the same rig.
  */
 export default function GaragePage() {
@@ -31,7 +31,7 @@ export default function GaragePage() {
             Ready the rig
           </h1>
           <p className="mt-4 max-w-xl text-sm text-sand sm:text-base">
-            Pick a platform, dial the specs, and let the math do the arguing:
+            Save multiple builds, dial the specs, and let the math do the arguing:
             every trail in the catalog scored against your build, and a payload
             budget that knows what a rooftop tent actually weighs.
           </p>

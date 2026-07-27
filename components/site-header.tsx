@@ -41,7 +41,7 @@ function Wordmark() {
         <circle cx="6" cy="22" r="2" className="fill-sand" />
         <circle cx="22" cy="10" r="2" className="fill-ember" />
       </svg>
-      <span className="heading-display text-xl leading-none transition-colors duration-150 group-hover:text-ember-bright">
+      <span className="heading-display hidden text-xl leading-none transition-colors duration-150 group-hover:text-ember-bright sm:inline">
         Switchback
       </span>
     </Link>
@@ -54,9 +54,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-edge bg-basalt/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Wordmark />
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-4">
           <nav aria-label="Primary">
-            <ul className="flex items-center gap-1 sm:gap-2">
+            <ul className="flex items-center sm:gap-2">
               {NAV.map((item) => {
                 const active =
                   pathname === item.href ||
@@ -66,13 +66,20 @@ export function SiteHeader() {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`rounded px-2.5 py-2 font-display text-sm font-semibold uppercase tracking-[0.14em] transition-colors duration-150 ease-out sm:px-3 ${
+                      className={`rounded px-1.5 py-2 font-display text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-150 ease-out sm:px-3 sm:text-sm sm:tracking-[0.14em] ${
                         active
                           ? "text-ember-bright"
                           : "text-sand-dim hover:text-bone"
                       }`}
                     >
-                      {item.label}
+                      {item.href === "/plan" ? (
+                        <>
+                          <span className="sm:hidden">Plan</span>
+                          <span className="hidden sm:inline">Plan a Trip</span>
+                        </>
+                      ) : (
+                        item.label
+                      )}
                     </Link>
                   </li>
                 );

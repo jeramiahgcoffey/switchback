@@ -162,6 +162,13 @@ export interface TripPlan {
   startDate: string;
   partySize: number;
   rigId: string;
+  /** Stable saved-build id when the plan came from the Garage library. */
+  rigBuildId?: string;
+  /**
+   * Immutable copy of the rig used for trip math. This keeps an existing plan
+   * stable when its linked Garage build is edited later.
+   */
+  rigSnapshot?: TripRigSnapshot;
   days: DayPlan[];
   /** GearItem id -> checked. */
   checklist: Record<string, boolean>;
@@ -190,11 +197,38 @@ export interface ActiveRigState {
   gearIds: string[];
 }
 
+/** A named Garage build. `rig` remains the compact preset + overrides shape. */
+export interface RigBuild {
+  id: string;
+  name: string;
+  rig: ActiveRigState;
+  /** ISO timestamps. */
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Versioned local/account representation of the complete Garage. */
+export interface RigLibraryState {
+  activeRigId: string;
+  rigs: RigBuild[];
+}
+
+/** The resolved rig and loadout frozen into a trip at planning time. */
+export interface TripRigSnapshot {
+  buildId?: string;
+  buildName: string;
+  profile: RigProfile;
+  gearIds: string[];
+}
+
 /**
- * Per-user account document, and the `/api/profile` payload. Mirrors the two
+ * Per-user account document, and the `/api/profile` payload. Mirrors the
  * synced localStorage blobs plus a client-set `updatedAt` for last-write-wins.
  */
 export interface UserProfile {
+  /** Canonical named-build Garage state. */
+  rigLibrary: RigLibraryState;
+  /** Legacy projection retained so older clients and documents remain valid. */
   activeRig: ActiveRigState;
   /** The active/working trip (mirrors `switchback:plan:v1`). */
   tripPlan: TripPlan | null;

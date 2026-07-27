@@ -1,0 +1,125 @@
+import { describe, expect, it } from "vitest";
+import {
+  MAX_PROFILE_TRIPS,
+  sanitizeUserProfile,
+} from "@/lib/profile-sanitize";
+import { MAX_RIG_BUILDS } from "@/lib/rig-library";
+
+const timestamp = "2026-07-27T12:00:00.000Z";
+
+function trip(index: number) {
+  return {
+    id: `trip-${index}`,
+    name: `Trip ${index}`,
+    trailSlug: "white-rim-trail",
+    startDate: "2026-10-02",
+    partySize: 2,
+    rigId: "rig-built-rubicon",
+    days: [],
+    checklist: {},
+    createdAt: timestamp,
+  };
+}
+
+function build(index: number) {
+  return {
+    id: `build-${index}`,
+    name: `Build ${index}`,
+    rig: {
+      rigId: "rig-built-rubicon",
+      gearIds: [`gear-${index}`],
+    },
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+describe("profile sanitizer", () => {
+  it("keeps the newest trips and rig builds within account caps", () => {
+    const profile = sanitizeUserProfile(
+      {
+        activeRig: { rigId: "rig-stock-sport", gearIds: [] },
+        rigLibrary: {
+          activeRigId: "build-26",
+          rigs: Array.from({ length: 27 }, (_, index) => build(index)),
+        },
+        tripPlan: null,
+        trips: Array.from({ length: 52 }, (_, index) => trip(index)),
+        updatedAt: timestamp,
+      },
+      timestamp,
+    );
+
+    expect(profile.rigLibrary.rigs).toHaveLength(MAX_RIG_BUILDS);
+    expect(profile.rigLibrary.rigs[0].id).toBe("build-2");
+    expect(profile.rigLibrary.rigs.at(-1)?.id).toBe("build-26");
+    expect(profile.rigLibrary.activeRigId).toBe("build-26");
+    expect(profile.activeRig.rigId).toBe("rig-built-rubicon");
+
+    expect(profile.trips).toHaveLength(MAX_PROFILE_TRIPS);
+    expect(profile.trips[0].id).toBe("trip-2");
+    expect(profile.trips.at(-1)?.id).toBe("trip-51");
+  });
+
+  it("migrates a legacy profile and sanitizes trip rig snapshots", () => {
+    const profile = sanitizeUserProfile(
+      {
+        activeRig: {
+          rigId: "rig-gladiator-mojave",
+          customSpecs: { tireIn: 35, injected: "drop-me" },
+          gearIds: ["water"],
+        },
+        tripPlan: {
+          ...trip(1),
+          rigBuildId: "garage-build",
+          rigSnapshot: {
+            buildId: "garage-build",
+            buildName: "Mojave",
+            profile: {
+              id: "rig-gladiator-mojave",
+              name: "Mojave",
+              vehicle: "Jeep Gladiator",
+              tireIn: 35,
+              clearanceIn: 11.6,
+              hasWinch: true,
+              hasLockers: true,
+              hasFourLo: true,
+              fuelRangeMiles: 480,
+              payloadLbs: 1325,
+              injected: "drop-me",
+            },
+            gearIds: ["water"],
+            injected: "drop-me",
+          },
+        },
+        trips: [],
+        updatedAt: timestamp,
+      },
+      timestamp,
+    );
+
+    expect(profile.rigLibrary.rigs).toHaveLength(1);
+    expect(profile.activeRig).toEqual({
+      rigId: "rig-gladiator-mojave",
+      customSpecs: { tireIn: 35 },
+      gearIds: ["water"],
+    });
+    expect(profile.tripPlan?.rigSnapshot).toEqual({
+      buildId: "garage-build",
+      buildName: "Mojave",
+      profile: {
+        id: "rig-gladiator-mojave",
+        name: "Mojave",
+        vehicle: "Jeep Gladiator",
+        tireIn: 35,
+        clearanceIn: 11.6,
+        hasWinch: true,
+        hasLockers: true,
+        hasFourLo: true,
+        fuelRangeMiles: 480,
+        payloadLbs: 1325,
+      },
+      gearIds: ["water"],
+    });
+  });
+});
