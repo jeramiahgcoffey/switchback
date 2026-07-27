@@ -50,6 +50,14 @@ export function PlanWorkspace() {
     if (plan) saveTrip(plan);
   }, [plan, saveTrip]);
 
+  const handleRename = useCallback(
+    (id: string, name: string) => {
+      renameTrip(id, name);
+      if (plan?.id === id) setPlan({ ...plan, name });
+    },
+    [plan, renameTrip, setPlan],
+  );
+
   const activePlanId = plan?.id ?? null;
   const canSaveCurrent = !!plan;
   const currentIsSaved = !!plan && trips.some((t) => t.id === plan.id);
@@ -66,7 +74,7 @@ export function PlanWorkspace() {
           onSaveCurrent={handleSaveCurrent}
           onLoad={handleLoad}
           onDelete={removeTrip}
-          onRename={renameTrip}
+          onRename={handleRename}
         />
       )}
       <TripWizard key={wizardKey} />

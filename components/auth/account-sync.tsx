@@ -17,7 +17,7 @@
  * the reconcile's setState calls, so applied state lands as one snapshot.
  */
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 import {
   SYNC_UPDATED_AT_KEY,
@@ -46,18 +46,19 @@ async function putProfile(
   plan: TripPlan | null,
   trips: TripPlan[],
   updatedAt: string,
-): Promise<boolean> {
+): Promise<UserProfile | null> {
   try {
     const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ activeRig: rig, tripPlan: plan, trips, updatedAt }),
     });
-    return res.ok;
+    if (!res.ok) return null;
+    return ((await res.json()) as { profile?: UserProfile }).profile ?? null;
   } catch {
     // Offline / transient — a failed write leaves serverSnapshot unchanged, so
     // the next edit or sign-in reconciliation retries it.
-    return false;
+    return null;
   }
 }
 
@@ -92,6 +93,28 @@ export function AccountSync() {
   const serverSnapshot = useRef<string | null>(null); // what the account holds
   const baseline = useRef<string | null>(null); // last snapshot we processed
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const applyServerProfile = useCallback(
+    (profile: UserProfile) => {
+      const serverTrips = profile.trips ?? [];
+      const serverSnap = snapshotOf(
+        profile.activeRig,
+        profile.tripPlan,
+        serverTrips,
+      );
+      serverSnapshot.current = serverSnap;
+
+      const local = latest.current;
+      if (serverSnap !== local.snapshot || profile.updatedAt !== local.updatedAt) {
+        baseline.current = serverSnap;
+        setRig(profile.activeRig);
+        setPlan(profile.tripPlan);
+        setTrips(serverTrips);
+        setUpdatedAt(profile.updatedAt);
+      }
+    },
+    [setRig, setPlan, setTrips, setUpdatedAt],
+  );
 
   // Reset when signed out; the local tier stays usable anonymously.
   useEffect(() => {
@@ -129,9 +152,9 @@ export function AccountSync() {
         // write is confirmed, so a failed claim retries instead of going quiet.
         const ts = local.updatedAt || new Date().toISOString();
         if (!local.updatedAt) setUpdatedAt(ts);
-        if (await putProfile(local.rig, local.plan, local.trips, ts)) {
-          serverSnapshot.current = local.snapshot;
-        }
+        const saved = await putProfile(local.rig, local.plan, local.trips, ts);
+        if (cancelled) return;
+        if (saved) applyServerProfile(saved);
       } else {
         const serverTrips = profile.trips ?? [];
         const serverSnap = snapshotOf(
@@ -143,21 +166,19 @@ export function AccountSync() {
           local.updatedAt && profile.updatedAt && local.updatedAt > profile.updatedAt;
 
         if (serverSnap === local.snapshot) {
-          serverSnapshot.current = serverSnap; // already in sync
+          applyServerProfile(profile); // already in sync
         } else if (localNewer) {
-          if (
-            await putProfile(local.rig, local.plan, local.trips, local.updatedAt)
-          ) {
-            serverSnapshot.current = local.snapshot; // local wins: pushed
-          }
+          const saved = await putProfile(
+            local.rig,
+            local.plan,
+            local.trips,
+            local.updatedAt,
+          );
+          if (cancelled) return;
+          if (saved) applyServerProfile(saved); // local wins: apply canonical copy
         } else {
           // Server wins: apply it locally (batched -> one snapshot).
-          serverSnapshot.current = serverSnap;
-          baseline.current = serverSnap;
-          setRig(profile.activeRig);
-          setPlan(profile.tripPlan);
-          setTrips(serverTrips);
-          setUpdatedAt(profile.updatedAt);
+          applyServerProfile(profile);
         }
       }
       done = true;
@@ -169,7 +190,7 @@ export function AccountSync() {
       // mid-flight), release the slot so the next mount re-runs reconciliation.
       if (!done) reconciledUser.current = null;
     };
-  }, [userId, hydrated, setRig, setPlan, setTrips, setUpdatedAt]);
+  }, [userId, hydrated, setUpdatedAt, applyServerProfile]);
 
   // Track local changes: bump the timestamp on genuine user edits, and push
   // when signed in. A change equal to the server snapshot is a remote apply.
@@ -191,12 +212,16 @@ export function AccountSync() {
       if (pushTimer.current) clearTimeout(pushTimer.current);
       pushTimer.current = setTimeout(async () => {
         const now = latest.current;
-        if (await putProfile(now.rig, now.plan, now.trips, now.updatedAt || ts)) {
-          serverSnapshot.current = now.snapshot; // only mark synced on success
-        }
+        const saved = await putProfile(
+          now.rig,
+          now.plan,
+          now.trips,
+          now.updatedAt || ts,
+        );
+        if (saved) applyServerProfile(saved);
       }, PUSH_DEBOUNCE_MS);
     }
-  }, [snapshot, hydrated, userId, setUpdatedAt]);
+  }, [snapshot, hydrated, userId, setUpdatedAt, applyServerProfile]);
 
   useEffect(() => {
     return () => {
