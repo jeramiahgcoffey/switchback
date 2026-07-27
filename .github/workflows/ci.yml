@@ -9,13 +9,18 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017
+      MONGODB_DB: switchback_ci
+      BETTER_AUTH_SECRET: switchback-ci-only-secret-at-least-32-characters
+      BETTER_AUTH_URL: http://127.0.0.1:3000
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
