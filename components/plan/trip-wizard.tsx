@@ -25,7 +25,12 @@ import {
   useLocalStorage,
   useTripPlan,
 } from "@/lib/storage";
-import type { RigBuild, RigProfile, TripPlan } from "@/lib/types";
+import type {
+  RigBuild,
+  RigProfile,
+  TripPlan,
+  TripRigSnapshot,
+} from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { SaveTickIcon } from "./plan-icons";
 import { StepIndicator } from "./step-indicator";
@@ -45,7 +50,10 @@ import {
 } from "./wizard-shared";
 import styles from "./plan.module.css";
 
-function draftFromPlan(plan: TripPlan): PlanDraft {
+function draftFromPlan(
+  plan: TripPlan,
+  rigSnapshot: TripRigSnapshot,
+): PlanDraft {
   return {
     id: plan.id,
     createdAt: plan.createdAt,
@@ -54,7 +62,7 @@ function draftFromPlan(plan: TripPlan): PlanDraft {
     partySize: plan.partySize,
     rigId: plan.rigId,
     rigBuildId: plan.rigBuildId,
-    rigSnapshot: plan.rigSnapshot,
+    rigSnapshot,
     targetDays: Math.max(1, plan.days.length),
     checklist: plan.checklist,
   };
@@ -95,13 +103,28 @@ function TripWizardInner() {
   const [storedStep, setStoredStep, { clear: clearStep }] =
     useLocalStorage<WizardStep>(PLAN_STEP_STORAGE_KEY, 1);
 
+  const snapshotForRig = useCallback(
+    (id: string) => {
+      if (id === garageState.rigId) return snapshotRigBuild(garageBuild);
+      const preset = getRigById(id) ?? getRigById(DEFAULT_RIG_ID) ?? rigs[0];
+      return snapshotPreset(preset);
+    },
+    [garageBuild, garageState.rigId],
+  );
+
   // Seed once on mount: resume the saved plan (and its stored step) unless
   // ?trail= points at a different route, in which case start a fresh draft
   // for that trail back on step one.
   const [initial] = useState(() => {
     const paramTrail = trailParam ? getTrailBySlug(trailParam) : undefined;
     if (plan && (!paramTrail || paramTrail.slug === plan.trailSlug)) {
-      return { draft: draftFromPlan(plan), step: asStep(storedStep) };
+      return {
+        draft: draftFromPlan(
+          plan,
+          plan.rigSnapshot ?? snapshotForRig(plan.rigId),
+        ),
+        step: asStep(storedStep),
+      };
     }
     return {
       draft: newDraft(paramTrail?.slug ?? null, garageBuild),
@@ -111,15 +134,6 @@ function TripWizardInner() {
   const [draft, setDraft] = useState<PlanDraft>(initial.draft);
   const [step, setStep] = useState<WizardStep>(initial.step);
   const [maxVisited, setMaxVisited] = useState<WizardStep>(initial.step);
-
-  const snapshotForRig = useCallback(
-    (id: string) => {
-      if (id === garageState.rigId) return snapshotRigBuild(garageBuild);
-      const preset = getRigById(id) ?? getRigById(DEFAULT_RIG_ID) ?? rigs[0];
-      return snapshotPreset(preset);
-    },
-    [garageBuild, garageState.rigId],
-  );
 
   /** Write the draft through as a TripPlan once it has a trail. */
   const persist = useCallback(
@@ -133,14 +147,14 @@ function TripWizardInner() {
           partySize: next.partySize,
           rigId: next.rigId,
           rigBuildId: next.rigBuildId,
-          rigSnapshot: next.rigSnapshot ?? snapshotForRig(next.rigId),
+          rigSnapshot: next.rigSnapshot,
           days: splitIntoDays(trail, clampTargetDays(trail, next.targetDays)),
           checklist: next.checklist,
           createdAt: next.createdAt,
         });
       }
     },
-    [setPlan, snapshotForRig],
+    [setPlan],
   );
 
   /** Update the draft and persist it. */

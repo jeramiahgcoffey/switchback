@@ -100,15 +100,18 @@ function sanitizeRigSnapshot(value: unknown): TripRigSnapshot | undefined {
   };
 }
 
-function sanitizeRigBuild(value: unknown): RigBuild | null {
+function sanitizeRigBuild(
+  value: unknown,
+  timestamp: string,
+): RigBuild | null {
   if (!isObj(value) || !str(value.id)) return null;
   const rig = sanitizeActiveRig(value.rig);
   return {
     id: capStr(value.id),
     name: capStr(value.name, resolveRigState(rig).name),
     rig,
-    createdAt: capStr(value.createdAt),
-    updatedAt: capStr(value.updatedAt),
+    createdAt: capStr(value.createdAt) || timestamp,
+    updatedAt: capStr(value.updatedAt) || timestamp,
   };
 }
 
@@ -128,7 +131,7 @@ export function sanitizeRigLibrary(
     index >= 0 && builds.length < MAX_RIG_BUILDS;
     index -= 1
   ) {
-    const build = sanitizeRigBuild(value.rigs[index]);
+    const build = sanitizeRigBuild(value.rigs[index], timestamp);
     if (build && !ids.has(build.id)) {
       ids.add(build.id);
       builds.push(build);
@@ -174,11 +177,27 @@ export function sanitizeTripPlan(value: unknown): TripPlan | null {
     });
   const checklist: Record<string, boolean> = {};
   if (isObj(value.checklist)) {
-    for (const [key, checked] of Object.entries(value.checklist).slice(
-      0,
-      MAX_CHECKLIST_KEYS,
-    )) {
-      if (bool(checked)) checklist[key.slice(0, MAX_STR)] = checked;
+    let kept = 0;
+    for (const key in value.checklist) {
+      if (
+        !Object.prototype.hasOwnProperty.call(value.checklist, key) ||
+        !bool(value.checklist[key])
+      ) {
+        continue;
+      }
+      const safeKey = key.slice(0, MAX_STR);
+      if (
+        !safeKey ||
+        safeKey.startsWith("$") ||
+        safeKey.includes(".") ||
+        safeKey.includes("\0") ||
+        Object.prototype.hasOwnProperty.call(checklist, safeKey)
+      ) {
+        continue;
+      }
+      checklist[safeKey] = value.checklist[key];
+      kept += 1;
+      if (kept >= MAX_CHECKLIST_KEYS) break;
     }
   }
   const plan: TripPlan = {

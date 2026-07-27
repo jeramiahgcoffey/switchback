@@ -57,6 +57,19 @@ export function GarageClient() {
     removeRig,
     hydrated,
   } = useRigLibrary();
+
+  if (!hydrated) {
+    return (
+      <div
+        className="mx-auto min-h-[32rem] max-w-6xl px-4 py-12 sm:px-6 sm:py-16"
+        aria-busy="true"
+        aria-label="Loading Garage"
+      >
+        <div className="h-28 animate-pulse rounded border border-edge bg-panel" />
+      </div>
+    );
+  }
+
   const state = activeBuild.rig;
   const rig = resolveRigState(state);
   const preset =
@@ -103,19 +116,17 @@ export function GarageClient() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      {hydrated ? (
-        <div className="pt-10 sm:pt-12">
-          <SavedRigsBar
-            rigs={library.rigs}
-            activeRigId={library.activeRigId}
-            onCreate={createRig}
-            onDuplicate={duplicateRig}
-            onActivate={activateRig}
-            onRename={renameRig}
-            onDelete={removeRig}
-          />
-        </div>
-      ) : null}
+      <div className="pt-10 sm:pt-12">
+        <SavedRigsBar
+          rigs={library.rigs}
+          activeRigId={library.activeRigId}
+          onCreate={createRig}
+          onDuplicate={duplicateRig}
+          onActivate={activateRig}
+          onRename={renameRig}
+          onDelete={removeRig}
+        />
+      </div>
 
       {/* 01: rig presets */}
       <section aria-label="Rig presets" className="py-12 sm:py-16">

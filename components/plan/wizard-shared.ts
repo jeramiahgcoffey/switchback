@@ -28,7 +28,7 @@ export interface PlanDraft {
   partySize: number;
   rigId: string;
   rigBuildId?: string;
-  rigSnapshot?: TripRigSnapshot;
+  rigSnapshot: TripRigSnapshot;
   targetDays: number;
   /** GearItem id -> checked. */
   checklist: Record<string, boolean>;

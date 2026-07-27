@@ -36,29 +36,44 @@ function build(index: number) {
 
 describe("profile sanitizer", () => {
   it("keeps the newest trips and rig builds within account caps", () => {
+    const rigFixtureCount = MAX_RIG_BUILDS + 2;
+    const tripFixtureCount = MAX_PROFILE_TRIPS + 2;
+    const activeBuildId = `build-${rigFixtureCount - 1}`;
     const profile = sanitizeUserProfile(
       {
         activeRig: { rigId: "rig-stock-sport", gearIds: [] },
         rigLibrary: {
-          activeRigId: "build-26",
-          rigs: Array.from({ length: 27 }, (_, index) => build(index)),
+          activeRigId: activeBuildId,
+          rigs: Array.from(
+            { length: rigFixtureCount },
+            (_, index) => build(index),
+          ),
         },
         tripPlan: null,
-        trips: Array.from({ length: 52 }, (_, index) => trip(index)),
+        trips: Array.from(
+          { length: tripFixtureCount },
+          (_, index) => trip(index),
+        ),
         updatedAt: timestamp,
       },
       timestamp,
     );
 
     expect(profile.rigLibrary.rigs).toHaveLength(MAX_RIG_BUILDS);
-    expect(profile.rigLibrary.rigs[0].id).toBe("build-2");
-    expect(profile.rigLibrary.rigs.at(-1)?.id).toBe("build-26");
-    expect(profile.rigLibrary.activeRigId).toBe("build-26");
+    expect(profile.rigLibrary.rigs[0].id).toBe(
+      `build-${rigFixtureCount - MAX_RIG_BUILDS}`,
+    );
+    expect(profile.rigLibrary.rigs.at(-1)?.id).toBe(activeBuildId);
+    expect(profile.rigLibrary.activeRigId).toBe(activeBuildId);
     expect(profile.activeRig.rigId).toBe("rig-built-rubicon");
 
     expect(profile.trips).toHaveLength(MAX_PROFILE_TRIPS);
-    expect(profile.trips[0].id).toBe("trip-2");
-    expect(profile.trips.at(-1)?.id).toBe("trip-51");
+    expect(profile.trips[0].id).toBe(
+      `trip-${tripFixtureCount - MAX_PROFILE_TRIPS}`,
+    );
+    expect(profile.trips.at(-1)?.id).toBe(
+      `trip-${tripFixtureCount - 1}`,
+    );
   });
 
   it("migrates a legacy profile and sanitizes trip rig snapshots", () => {
@@ -120,6 +135,47 @@ describe("profile sanitizer", () => {
         payloadLbs: 1325,
       },
       gearIds: ["water"],
+    });
+  });
+
+  it("repairs build timestamps and drops MongoDB-unsafe checklist keys", () => {
+    const unsafeChecklist = {
+      safe: true,
+      "contains.dot": true,
+      $operator: true,
+      "": true,
+      disabled: false,
+    };
+    const profile = sanitizeUserProfile(
+      {
+        activeRig: { rigId: "rig-stock-sport", gearIds: [] },
+        rigLibrary: {
+          activeRigId: "build-1",
+          rigs: [
+            {
+              ...build(1),
+              createdAt: "",
+              updatedAt: undefined,
+            },
+          ],
+        },
+        tripPlan: {
+          ...trip(1),
+          checklist: unsafeChecklist,
+        },
+        trips: [],
+        updatedAt: timestamp,
+      },
+      timestamp,
+    );
+
+    expect(profile.rigLibrary.rigs[0]).toMatchObject({
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+    expect(profile.tripPlan?.checklist).toEqual({
+      safe: true,
+      disabled: false,
     });
   });
 });

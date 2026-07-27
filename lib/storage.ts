@@ -204,6 +204,30 @@ export function useRigLibrary(): {
   }, [legacyRig, migrationPending, setLibrary]);
 
   const activeBuild = getActiveRigBuild(library);
+  const ready = hydrated && !migrationPending;
+
+  useEffect(() => {
+    if (
+      !ready ||
+      library.rigs.length === 0 ||
+      activeBuild.id === library.activeRigId
+    ) {
+      return;
+    }
+    setLibrary((prev) => {
+      if (prev.rigs.length === 0) return prev;
+      const resolved = getActiveRigBuild(prev);
+      return resolved.id === prev.activeRigId
+        ? prev
+        : { ...prev, activeRigId: resolved.id };
+    });
+  }, [
+    ready,
+    activeBuild.id,
+    library.activeRigId,
+    library.rigs.length,
+    setLibrary,
+  ]);
 
   const updateActiveRig = useCallback(
     (next: ActiveRigState | ((prev: ActiveRigState) => ActiveRigState)) => {
@@ -324,7 +348,7 @@ export function useRigLibrary(): {
     activateRig,
     renameRig,
     removeRig,
-    hydrated: hydrated && !migrationPending,
+    hydrated: ready,
   };
 }
 

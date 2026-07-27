@@ -76,8 +76,10 @@ export function AccountSync() {
     setLibrary: setRigLibrary,
     hydrated: rigsHydrated,
   } = useRigLibrary();
-  const { plan, setPlan } = useTripPlan();
-  const [trips, setTrips] = useLocalStorage<TripPlan[]>(
+  const { plan, setPlan, hydrated: planHydrated } = useTripPlan();
+  const [trips, setTrips, { hydrated: tripsHydrated }] = useLocalStorage<
+    TripPlan[]
+  >(
     TRIPS_STORAGE_KEY,
     EMPTY_TRIPS,
   );
@@ -85,7 +87,8 @@ export function AccountSync() {
     SYNC_UPDATED_AT_KEY,
     "",
   );
-  const hydrated = rigsHydrated && syncHydrated;
+  const hydrated =
+    rigsHydrated && planHydrated && tripsHydrated && syncHydrated;
 
   const userId = session?.user?.id ?? null;
   const snapshot = useMemo(
@@ -105,6 +108,7 @@ export function AccountSync() {
   const serverSnapshot = useRef<string | null>(null); // what the account holds
   const baseline = useRef<string | null>(null); // last snapshot we processed
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncGeneration = useRef(0);
 
   const applyServerProfile = useCallback(
     (profile: UserProfile) => {
@@ -128,12 +132,27 @@ export function AccountSync() {
     [setRigLibrary, setPlan, setTrips, setUpdatedAt],
   );
 
-  // Reset when signed out; the local tier stays usable anonymously.
+  // Reset on account changes; the local tier stays usable anonymously.
+  // The generation invalidates an already-started push so its response cannot
+  // apply a previous account's profile after sign-out, account switch, or
+  // unmount.
   useEffect(() => {
-    if (!userId) {
-      reconciledUser.current = null;
-      serverSnapshot.current = null;
+    const generation = ++syncGeneration.current;
+    if (pushTimer.current) {
+      clearTimeout(pushTimer.current);
+      pushTimer.current = null;
     }
+    reconciledUser.current = null;
+    serverSnapshot.current = null;
+    return () => {
+      if (syncGeneration.current === generation) {
+        syncGeneration.current += 1;
+      }
+      if (pushTimer.current) {
+        clearTimeout(pushTimer.current);
+        pushTimer.current = null;
+      }
+    };
   }, [userId]);
 
   // Reconcile once per sign-in.
@@ -227,7 +246,10 @@ export function AccountSync() {
 
     if (userId && reconciledUser.current === userId) {
       if (pushTimer.current) clearTimeout(pushTimer.current);
+      const pushUser = userId;
+      const pushGeneration = syncGeneration.current;
       pushTimer.current = setTimeout(async () => {
+        pushTimer.current = null;
         const now = latest.current;
         const saved = await putProfile(
           now.rigLibrary,
@@ -235,16 +257,16 @@ export function AccountSync() {
           now.trips,
           now.updatedAt || ts,
         );
-        if (saved) applyServerProfile(saved);
+        if (
+          saved &&
+          syncGeneration.current === pushGeneration &&
+          reconciledUser.current === pushUser
+        ) {
+          applyServerProfile(saved);
+        }
       }, PUSH_DEBOUNCE_MS);
     }
   }, [snapshot, hydrated, userId, setUpdatedAt, applyServerProfile]);
-
-  useEffect(() => {
-    return () => {
-      if (pushTimer.current) clearTimeout(pushTimer.current);
-    };
-  }, []);
 
   return null;
 }

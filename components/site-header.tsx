@@ -6,7 +6,7 @@ import { AccountMenu } from "@/components/auth/account-menu";
 
 const NAV = [
   { href: "/trails", label: "Trails" },
-  { href: "/plan", label: "Plan a Trip" },
+  { href: "/plan", label: "Plan a Trip", shortLabel: "Plan" },
   { href: "/garage", label: "Garage" },
 ] as const;
 
@@ -72,10 +72,10 @@ export function SiteHeader() {
                           : "text-sand-dim hover:text-bone"
                       }`}
                     >
-                      {item.href === "/plan" ? (
+                      {"shortLabel" in item ? (
                         <>
-                          <span className="sm:hidden">Plan</span>
-                          <span className="hidden sm:inline">Plan a Trip</span>
+                          <span className="sm:hidden">{item.shortLabel}</span>
+                          <span className="hidden sm:inline">{item.label}</span>
                         </>
                       ) : (
                         item.label
