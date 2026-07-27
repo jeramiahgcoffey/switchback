@@ -2,7 +2,8 @@
  * Trip Wizard shared helpers: pure functions and types used across the
  * three wizard steps. No React, no side effects.
  */
-import type { Season, Trail } from "@/lib/types";
+import { getTrailBySlug } from "@/lib/data/trails";
+import type { Season, Trail, TripPlan } from "@/lib/types";
 
 export type WizardStep = 1 | 2 | 3;
 
@@ -70,6 +71,31 @@ export const SEASON_LABEL: Record<Season, string> = {
   fall: "Fall",
   winter: "Winter",
 };
+
+/** "Jul 4, 2026" — the trip's start date, for saved-trip labels. */
+export function formatFullDate(iso: string): string {
+  const d = parseLocalDate(iso);
+  if (!d) return "";
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/**
+ * Display label for a saved trip: the user's custom name if set, else a
+ * derived "<trail> · <start date>" (falling back gracefully if the trail
+ * slug no longer resolves).
+ */
+export function tripLabel(plan: TripPlan): string {
+  const custom = plan.name?.trim();
+  if (custom) return custom;
+  const trail = getTrailBySlug(plan.trailSlug);
+  const name = trail?.name ?? "Custom trip";
+  const date = formatFullDate(plan.startDate);
+  return date ? `${name} · ${date}` : name;
+}
 
 /** "Fri, Jul 4" for day N of the trip (0-indexed offset). */
 export function formatTripDate(startISO: string, dayOffset: number): string {

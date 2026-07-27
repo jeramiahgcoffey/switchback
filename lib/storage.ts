@@ -25,6 +25,8 @@ export type { ActiveRigState } from "@/lib/types";
 
 export const RIG_STORAGE_KEY = "switchback:rig:v1";
 export const PLAN_STORAGE_KEY = "switchback:plan:v1";
+/** The saved-trip library (multi-trip): an array of full TripPlans by id. */
+export const TRIPS_STORAGE_KEY = "switchback:trips:v1";
 /** ISO timestamp of the last user edit to rig/plan; owned by AccountSync. */
 export const SYNC_UPDATED_AT_KEY = "switchback:updatedAt:v1";
 
@@ -177,4 +179,56 @@ export function useTripPlan(): {
     null,
   );
   return { plan, setPlan, hydrated, clear };
+}
+
+// ---------------------------------------------------------------------------
+// Saved-trip library — key 'switchback:trips:v1'
+// ---------------------------------------------------------------------------
+
+// Stable empty fallback so the snapshot identity doesn't churn (see note above).
+const EMPTY_TRIPS: TripPlan[] = [];
+
+/**
+ * The multi-trip library: many saved TripPlans keyed by `id`. Upsert-by-id so
+ * re-saving an edited plan updates its entry rather than duplicating it. Synced
+ * to the account alongside the active rig/plan by AccountSync.
+ */
+export function useSavedTrips(): {
+  trips: TripPlan[];
+  hydrated: boolean;
+  /** Insert or update a plan by id. */
+  saveTrip: (plan: TripPlan) => void;
+  removeTrip: (id: string) => void;
+  renameTrip: (id: string, name: string) => void;
+} {
+  const [trips, setTrips, { hydrated }] = useLocalStorage<TripPlan[]>(
+    TRIPS_STORAGE_KEY,
+    EMPTY_TRIPS,
+  );
+
+  const saveTrip = useCallback(
+    (plan: TripPlan) => {
+      setTrips((prev) => {
+        const idx = prev.findIndex((t) => t.id === plan.id);
+        if (idx === -1) return [...prev, plan];
+        const next = prev.slice();
+        next[idx] = plan;
+        return next;
+      });
+    },
+    [setTrips],
+  );
+
+  const removeTrip = useCallback(
+    (id: string) => setTrips((prev) => prev.filter((t) => t.id !== id)),
+    [setTrips],
+  );
+
+  const renameTrip = useCallback(
+    (id: string, name: string) =>
+      setTrips((prev) => prev.map((t) => (t.id === id ? { ...t, name } : t))),
+    [setTrips],
+  );
+
+  return { trips, hydrated, saveTrip, removeTrip, renameTrip };
 }

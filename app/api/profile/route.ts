@@ -20,6 +20,7 @@ const MAX_GEAR_IDS = 500;
 const MAX_DAYS = 60;
 const MAX_CHECKLIST_KEYS = 1000;
 const MAX_STR = 256;
+const MAX_TRIPS = 50;
 
 function profiles() {
   return client.db(DB_NAME).collection<UserProfile & { userId: string }>("profiles");
@@ -102,7 +103,7 @@ function sanitizeTripPlan(v: unknown): TripPlan | null {
       if (bool(val)) checklist[k.slice(0, MAX_STR)] = val;
     }
   }
-  return {
+  const plan: TripPlan = {
     id: capStr(v.id),
     trailSlug: capStr(v.trailSlug),
     startDate: capStr(v.startDate),
@@ -112,6 +113,19 @@ function sanitizeTripPlan(v: unknown): TripPlan | null {
     checklist,
     createdAt: capStr(v.createdAt),
   };
+  if (str(v.name)) plan.name = v.name.slice(0, MAX_STR);
+  return plan;
+}
+
+/** Sanitize the saved-trip library: cap the count, drop malformed entries. */
+function sanitizeTrips(v: unknown): TripPlan[] {
+  if (!Array.isArray(v)) return [];
+  const out: TripPlan[] = [];
+  for (const item of v.slice(0, MAX_TRIPS)) {
+    const t = sanitizeTripPlan(item);
+    if (t) out.push(t);
+  }
+  return out;
 }
 
 export async function GET() {
@@ -121,7 +135,12 @@ export async function GET() {
   await ensureIndexes();
   const doc = await profiles().findOne({ userId });
   const profile: UserProfile | null = doc
-    ? { activeRig: doc.activeRig, tripPlan: doc.tripPlan, updatedAt: doc.updatedAt }
+    ? {
+        activeRig: doc.activeRig,
+        tripPlan: doc.tripPlan,
+        trips: doc.trips ?? [],
+        updatedAt: doc.updatedAt,
+      }
     : null;
   return NextResponse.json({ profile });
 }
@@ -143,6 +162,7 @@ export async function PUT(request: Request) {
   const profile: UserProfile = {
     activeRig: sanitizeActiveRig(body.activeRig),
     tripPlan: sanitizeTripPlan(body.tripPlan),
+    trips: sanitizeTrips(body.trips),
     updatedAt: capStr(body.updatedAt) || new Date().toISOString(),
   };
 
