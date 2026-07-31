@@ -45,7 +45,7 @@ export const gear = [
   { id: "gear-wash-kit", name: "Camp wash kit", category: "kitchen", weightLbs: 2, essential: false, conditions: { minDays: 2 } },
 
   // ---------- water ----------
-  { id: "gear-drinking-water", name: "Drinking water (1 gal/person/day)", category: "water", weightLbs: 8.3, essential: true, qtyPerPerson: true, note: "8.3 lb per gallon, the honest line item most payload math forgets. Scale by trip days." },
+  { id: "gear-drinking-water", name: "Drinking water (1 gal/person/day)", category: "water", weightLbs: 8.3, essential: true, qtyPerPerson: true, qtyPerDay: true, note: "8.3 lb per gallon, the honest line item most payload math forgets." },
   { id: "gear-water-cube", name: "7-gal water container (full)", category: "water", weightLbs: 62, essential: true, conditions: { minDays: 2 } },
   { id: "gear-water-filter", name: "Water filter", category: "water", weightLbs: 1.5, essential: false, conditions: { minDays: 3 }, note: "Only worth carrying where there's water to filter." },
   { id: "gear-electrolytes", name: "Electrolyte mix", category: "water", weightLbs: 1, essential: false, qtyPerPerson: true, conditions: { seasons: ["summer"], terrain: ["desert", "sand", "slickrock"] } },

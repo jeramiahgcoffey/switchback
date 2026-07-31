@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { matchRigToTrail, splitIntoDays } from "@/lib/derive";
+import {
+  computeLoadout,
+  gearItemQuantity,
+  matchRigToTrail,
+  splitIntoDays,
+} from "@/lib/derive";
+import { gear, getGearById } from "@/lib/data/gear";
 import { getRigById } from "@/lib/data/rigs";
 import { getTrailBySlug } from "@/lib/data/trails";
 
@@ -32,5 +38,20 @@ describe("shared trip derivation", () => {
     expect(days.reduce((sum, day) => sum + day.miles, 0)).toBe(
       whiteRim!.distanceMiles,
     );
+  });
+
+  it("scales per-day water across both the crew and trip length", () => {
+    const water = getGearById("gear-drinking-water");
+    expect(water).toBeDefined();
+    expect(gearItemQuantity(water!, 3, 3)).toBe(9);
+
+    const loadout = computeLoadout(
+      [water!.id],
+      3,
+      rubicon!,
+      gear,
+      3,
+    );
+    expect(loadout.totalLbs).toBe(74.7);
   });
 });

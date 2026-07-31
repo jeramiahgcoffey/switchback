@@ -56,6 +56,7 @@ function draftFromPlan(
 ): PlanDraft {
   return {
     id: plan.id,
+    name: plan.name,
     createdAt: plan.createdAt,
     trailSlug: plan.trailSlug,
     startDate: plan.startDate,
@@ -65,6 +66,7 @@ function draftFromPlan(
     rigSnapshot,
     targetDays: Math.max(1, plan.days.length),
     checklist: plan.checklist,
+    fieldNotes: plan.fieldNotes,
   };
 }
 
@@ -142,6 +144,7 @@ function TripWizardInner() {
       if (trail) {
         setPlan({
           id: next.id,
+          name: next.name,
           trailSlug: trail.slug,
           startDate: next.startDate,
           partySize: next.partySize,
@@ -150,6 +153,7 @@ function TripWizardInner() {
           rigSnapshot: next.rigSnapshot,
           days: splitIntoDays(trail, clampTargetDays(trail, next.targetDays)),
           checklist: next.checklist,
+          fieldNotes: next.fieldNotes,
           createdAt: next.createdAt,
         });
       }
@@ -249,6 +253,7 @@ function TripWizardInner() {
                   ? clampTargetDays(next, next.estimatedDays)
                   : draft.targetDays,
                 checklist: {},
+                fieldNotes: undefined,
               });
             }}
             onStartDate={(iso) => commit({ ...draft, startDate: iso })}
@@ -286,6 +291,7 @@ function TripWizardInner() {
             season={season}
             partySize={draft.partySize}
             checklist={draft.checklist}
+            fieldNotes={draft.fieldNotes}
             onToggle={(id) =>
               commit({
                 ...draft,
@@ -293,6 +299,7 @@ function TripWizardInner() {
               })
             }
             onClear={() => commit({ ...draft, checklist: {} })}
+            onFieldNotes={(fieldNotes) => commit({ ...draft, fieldNotes })}
           />
         )}
       </div>

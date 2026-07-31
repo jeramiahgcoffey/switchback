@@ -178,4 +178,34 @@ describe("profile sanitizer", () => {
       disabled: false,
     });
   });
+
+  it("whitelists and bounds trip field notes for account sync", () => {
+    const profile = sanitizeUserProfile(
+      {
+        activeRig: { rigId: "rig-stock-sport", gearIds: [] },
+        tripPlan: {
+          ...trip(1),
+          fieldNotes: {
+            tripLeader: "Mara",
+            emergencyContact: "Basecamp",
+            emergencyPhone: "+1 555 0100",
+            checkInBy: "2026-10-04T18:30",
+            notes: "A".repeat(2500),
+            injected: "drop-me",
+          },
+        },
+        trips: [],
+        updatedAt: timestamp,
+      },
+      timestamp,
+    );
+
+    expect(profile.tripPlan?.fieldNotes).toEqual({
+      tripLeader: "Mara",
+      emergencyContact: "Basecamp",
+      emergencyPhone: "+1 555 0100",
+      checkInBy: "2026-10-04T18:30",
+      notes: "A".repeat(2000),
+    });
+  });
 });
