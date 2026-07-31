@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const savedTrip = {
   id: "trip-field-packet",
@@ -69,9 +69,14 @@ const savedTrip = {
   createdAt: "2026-07-27T12:00:00.000Z",
 };
 
-test.beforeEach(async ({ page }) => {
+async function seedSavedTrip(page: Page) {
   await page.addInitScript((trip) => {
     window.localStorage.setItem("switchback:trips:v1", JSON.stringify([trip]));
+  }, savedTrip);
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
     const printState = window as typeof window & {
       __switchbackPrintCalled?: boolean;
     };
@@ -82,12 +87,13 @@ test.beforeEach(async ({ page }) => {
         printState.__switchbackPrintCalled = true;
       },
     });
-  }, savedTrip);
+  });
 });
 
 test("opens a complete saved-trip packet and invokes print/save PDF", async ({
   page,
 }) => {
+  await seedSavedTrip(page);
   await page.goto("/plan");
   const savedTrips = page.getByRole("region", { name: "Saved trips" });
   await savedTrips.getByRole("link", { name: "Packet" }).click();
@@ -123,7 +129,6 @@ test("opens a complete saved-trip packet and invokes print/save PDF", async ({
 test("carries field details from the builder into a newly saved packet", async ({
   page,
 }) => {
-  await page.addInitScript(() => window.localStorage.clear());
   await page.goto("/plan?trail=white-rim-trail");
 
   await page.getByRole("button", { name: "Build itinerary" }).click();
@@ -146,6 +151,7 @@ test("carries field details from the builder into a newly saved packet", async (
 });
 
 test("keeps the packet usable at a narrow field viewport", async ({ page }) => {
+  await seedSavedTrip(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/plan/packet/trip-field-packet");
 

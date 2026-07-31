@@ -56,6 +56,12 @@ describe("buildTripPacket", () => {
     expect(packet?.fuel.ok).toBe(true);
     expect(packet?.waypoints.length).toBeGreaterThan(3);
     expect(packet?.gearGroups.length).toBeGreaterThan(4);
+    const drinkingWater = packet?.gearGroups
+      .flatMap((group) => group.items)
+      .find(({ item }) => item.id === "gear-drinking-water");
+    expect(drinkingWater?.quantity).toBe(9);
+    const waypointMiles = packet?.waypoints.map(({ mileMarker }) => mileMarker) ?? [];
+    expect(waypointMiles).toEqual([...waypointMiles].sort((left, right) => left - right));
     expect(packet?.totals).toMatchObject({
       checkedItems: 2,
       nights: 2,

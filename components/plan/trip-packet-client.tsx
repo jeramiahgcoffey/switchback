@@ -6,11 +6,11 @@ import {
   buildTripPacket,
   type TripPacketData,
   type TripPacketDay,
+  type TripPacketGearGroup,
 } from "@/lib/trip-packet";
 import { formatCoords, formatFeet, formatMiles } from "@/lib/derive";
 import type {
   CellCoverage,
-  GearCategory,
   ReadinessStatus,
   Waypoint,
   WaypointKind,
@@ -231,21 +231,13 @@ function WaypointGlyph({ waypoint }: { waypoint: Waypoint }) {
   return <FlagIcon size={15} />;
 }
 
-function GearGroup({
-  category,
-  packet,
-}: {
-  category: GearCategory;
-  packet: TripPacketData;
-}) {
-  const group = packet.gearGroups.find((entry) => entry.category === category);
-  if (!group) return null;
+function GearGroup({ group }: { group: TripPacketGearGroup }) {
   const packed = group.items.filter((entry) => entry.checked).length;
 
   return (
     <section className={styles.gearGroup}>
       <header>
-        <h3>{CATEGORY_LABEL[category]}</h3>
+        <h3>{CATEGORY_LABEL[group.category]}</h3>
         <span>
           {packed}/{group.items.length} packed
         </span>
@@ -255,6 +247,7 @@ function GearGroup({
           <li key={item.id}>
             <span
               className={`${styles.checkBox} ${checked ? styles.checkBoxDone : ""}`}
+              role="img"
               aria-label={checked ? "Packed" : "Not packed"}
             >
               {checked ? "✓" : ""}
@@ -489,7 +482,7 @@ function Packet({ packet }: { packet: TripPacketData }) {
             {notes?.notes ? (
               <p>{notes.notes}</p>
             ) : (
-              <div aria-label="Blank lines for handwritten notes">
+              <div aria-hidden="true">
                 <span />
                 <span />
                 <span />
@@ -516,7 +509,7 @@ function Packet({ packet }: { packet: TripPacketData }) {
           </div>
           <div className={styles.gearColumns}>
             {packet.gearGroups.map((group) => (
-              <GearGroup key={group.category} category={group.category} packet={packet} />
+              <GearGroup key={group.category} group={group} />
             ))}
           </div>
         </section>
