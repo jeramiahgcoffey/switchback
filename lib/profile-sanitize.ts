@@ -10,6 +10,7 @@ import type {
   RigLibraryState,
   RigProfile,
   TripPlan,
+  TripFieldNotes,
   TripRigSnapshot,
   UserProfile,
 } from "@/lib/types";
@@ -19,6 +20,7 @@ const MAX_GEAR_IDS = 500;
 const MAX_DAYS = 60;
 const MAX_CHECKLIST_KEYS = 1000;
 const MAX_STR = 256;
+const MAX_NOTES_STR = 2000;
 
 const isObj = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -98,6 +100,21 @@ function sanitizeRigSnapshot(value: unknown): TripRigSnapshot | undefined {
           .map((id) => id.slice(0, MAX_STR))
       : [],
   };
+}
+
+function sanitizeFieldNotes(value: unknown): TripFieldNotes | undefined {
+  if (!isObj(value)) return undefined;
+  const notes: TripFieldNotes = {};
+  for (const key of [
+    "tripLeader",
+    "emergencyContact",
+    "emergencyPhone",
+    "checkInBy",
+  ] as const) {
+    if (str(value[key])) notes[key] = value[key].slice(0, MAX_STR);
+  }
+  if (str(value.notes)) notes.notes = value.notes.slice(0, MAX_NOTES_STR);
+  return Object.values(notes).some(Boolean) ? notes : undefined;
 }
 
 function sanitizeRigBuild(
@@ -216,6 +233,8 @@ export function sanitizeTripPlan(value: unknown): TripPlan | null {
   }
   const snapshot = sanitizeRigSnapshot(value.rigSnapshot);
   if (snapshot) plan.rigSnapshot = snapshot;
+  const fieldNotes = sanitizeFieldNotes(value.fieldNotes);
+  if (fieldNotes) plan.fieldNotes = fieldNotes;
   return plan;
 }
 

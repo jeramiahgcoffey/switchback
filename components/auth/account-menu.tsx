@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { useHydrated } from "@/lib/storage";
 
 /**
  * Header account control. Reactive to Better Auth's session store: shows a
@@ -13,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
  */
 export function AccountMenu() {
   const { data: session, isPending } = authClient.useSession();
+  const hydrated = useHydrated();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -34,7 +36,7 @@ export function AccountMenu() {
     };
   }, [open]);
 
-  if (isPending) {
+  if (!hydrated || isPending) {
     return (
       <div
         className="h-9 w-[4.5rem] animate-pulse rounded bg-gunmetal-light/50"

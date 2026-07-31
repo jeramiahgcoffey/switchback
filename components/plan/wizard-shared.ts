@@ -6,6 +6,7 @@ import { getTrailBySlug } from "@/lib/data/trails";
 import type {
   Season,
   Trail,
+  TripFieldNotes,
   TripPlan,
   TripRigSnapshot,
 } from "@/lib/types";
@@ -21,6 +22,7 @@ export const PLAN_STEP_STORAGE_KEY = "switchback:plan:step:v1";
 /** The wizard's working copy of the plan; written through to storage. */
 export interface PlanDraft {
   id: string;
+  name?: string;
   createdAt: string;
   trailSlug: string | null;
   /** ISO date, e.g. "2026-07-04". */
@@ -32,6 +34,7 @@ export interface PlanDraft {
   targetDays: number;
   /** GearItem id -> checked. */
   checklist: Record<string, boolean>;
+  fieldNotes?: TripFieldNotes;
 }
 
 export function newPlanId(): string {

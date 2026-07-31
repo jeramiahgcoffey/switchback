@@ -132,6 +132,8 @@ export interface GearItem {
   essential: boolean;
   /** When true, quantity (and weight) scales with party size. */
   qtyPerPerson?: boolean;
+  /** When true, quantity (and weight) also scales with trip length. */
+  qtyPerDay?: boolean;
   /** When present, the item is only packed if the trip matches. */
   conditions?: {
     minDifficulty?: Difficulty;
@@ -150,6 +152,17 @@ export interface DayPlan {
   estWheelHours: number;
   campWaypointId: string | null;
   resupplyWaypointIds: string[];
+}
+
+/** Trip-specific details that belong in the field packet, not the Garage. */
+export interface TripFieldNotes {
+  tripLeader?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  /** Local date/time from an `<input type="datetime-local">`. */
+  checkInBy?: string;
+  /** Freeform permits, meetup, medical, weather, and crew notes. */
+  notes?: string;
 }
 
 export interface TripPlan {
@@ -172,6 +185,8 @@ export interface TripPlan {
   days: DayPlan[];
   /** GearItem id -> checked. */
   checklist: Record<string, boolean>;
+  /** Optional operational details printed in the trip packet. */
+  fieldNotes?: TripFieldNotes;
   /** ISO timestamp. */
   createdAt: string;
 }

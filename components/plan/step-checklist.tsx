@@ -9,18 +9,29 @@
  * an animated progress ring.
  */
 import { useMemo } from "react";
-import { buildPackingList } from "@/lib/derive";
+import { buildPackingList, gearItemQuantity } from "@/lib/derive";
 import { gear, gearCategories } from "@/lib/data/gear";
-import type { GearCategory, GearItem, Season, Trail } from "@/lib/types";
+import type {
+  GearCategory,
+  GearItem,
+  Season,
+  Trail,
+  TripFieldNotes as TripFieldNotesValue,
+} from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_LABEL, CategoryIcon } from "./plan-icons";
 import { ProgressRing } from "./progress-ring";
+import { TripFieldNotes } from "./trip-field-notes";
 import { SEASON_LABEL } from "./wizard-shared";
 import styles from "./plan.module.css";
 
-function itemWeightLbs(item: GearItem, partySize: number): number {
-  return item.weightLbs * (item.qtyPerPerson ? Math.max(1, partySize) : 1);
+function itemWeightLbs(
+  item: GearItem,
+  partySize: number,
+  dayCount: number,
+): number {
+  return item.weightLbs * gearItemQuantity(item, partySize, dayCount);
 }
 
 function formatLbs(lbs: number): string {
@@ -30,15 +41,17 @@ function formatLbs(lbs: number): string {
 function ChecklistRow({
   item,
   partySize,
+  dayCount,
   checked,
   onToggle,
 }: {
   item: GearItem;
   partySize: number;
+  dayCount: number;
   checked: boolean;
   onToggle: () => void;
 }) {
-  const qty = item.qtyPerPerson ? Math.max(1, partySize) : 1;
+  const qty = gearItemQuantity(item, partySize, dayCount);
   return (
     <li>
       <button
@@ -97,7 +110,7 @@ function ChecklistRow({
         </span>
         <span className="readout shrink-0 pt-0.5 text-[0.7rem] text-sand-dim">
           {qty > 1 && <span className="mr-2 text-sand">×{qty}</span>}
-          {formatLbs(itemWeightLbs(item, partySize))}
+          {formatLbs(itemWeightLbs(item, partySize, dayCount))}
         </span>
       </button>
     </li>
@@ -110,16 +123,20 @@ export function StepChecklist({
   season,
   partySize,
   checklist,
+  fieldNotes,
   onToggle,
   onClear,
+  onFieldNotes,
 }: {
   trail: Trail;
   dayCount: number;
   season: Season;
   partySize: number;
   checklist: Record<string, boolean>;
+  fieldNotes?: TripFieldNotesValue;
   onToggle: (id: string) => void;
   onClear: () => void;
+  onFieldNotes: (value: TripFieldNotesValue) => void;
 }) {
   const items = useMemo(
     () => buildPackingList(trail, dayCount, season, partySize, gear),
@@ -136,13 +153,21 @@ export function StepChecklist({
   }, [items]);
 
   const checkedCount = items.filter((i) => checklist[i.id]).length;
-  const totalWeight = items.reduce((s, i) => s + itemWeightLbs(i, partySize), 0);
+  const totalWeight = items.reduce(
+    (sum, item) => sum + itemWeightLbs(item, partySize, dayCount),
+    0,
+  );
   const packedWeight = items
     .filter((i) => checklist[i.id])
-    .reduce((s, i) => s + itemWeightLbs(i, partySize), 0);
+    .reduce(
+      (sum, item) => sum + itemWeightLbs(item, partySize, dayCount),
+      0,
+    );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+    <div className="space-y-6">
+      <TripFieldNotes value={fieldNotes} onChange={onFieldNotes} />
+      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
       {/* Summary panel */}
       <aside className="lg:sticky lg:top-20 lg:self-start">
         <div className="card-surface flex flex-col items-center p-6 text-center">
@@ -225,6 +250,7 @@ export function StepChecklist({
                     key={item.id}
                     item={item}
                     partySize={partySize}
+                    dayCount={dayCount}
                     checked={Boolean(checklist[item.id])}
                     onToggle={() => onToggle(item.id)}
                   />
@@ -233,6 +259,7 @@ export function StepChecklist({
             </section>
           );
         })}
+      </div>
       </div>
     </div>
   );

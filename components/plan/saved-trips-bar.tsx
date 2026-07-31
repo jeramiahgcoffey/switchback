@@ -34,7 +34,7 @@ function IconSvg({
   label,
 }: {
   children: React.ReactNode;
-  label: string;
+  label?: string;
 }) {
   return (
     <svg
@@ -46,8 +46,9 @@ function IconSvg({
       strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      role="img"
+      role={label ? "img" : undefined}
       aria-label={label}
+      aria-hidden={label ? undefined : true}
     >
       {children}
     </svg>
@@ -62,6 +63,12 @@ const PencilIcon = () => (
 const TrashIcon = () => (
   <IconSvg label="Remove">
     <path d="M4 6.5h16M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5M6.5 6.5 7.3 19a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12.5" />
+  </IconSvg>
+);
+const PacketIcon = () => (
+  <IconSvg>
+    <path d="M7 3.5h7l4 4V20.5H7z" />
+    <path d="M14 3.5v4h4M10 11h5M10 14.5h5M10 18h3" />
   </IconSvg>
 );
 
@@ -107,7 +114,7 @@ function TripRow({
 
   return (
     <li
-      className={`flex items-center gap-3 rounded border px-3 py-2.5 transition-colors ${
+      className={`flex flex-wrap items-center gap-3 rounded border px-3 py-2.5 transition-colors ${
         isActive
           ? "border-ember/60 bg-ember/5"
           : "border-edge bg-basalt/40 hover:border-edge-strong"
@@ -164,7 +171,15 @@ function TripRow({
           </Button>
         </div>
       ) : (
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            href={`/plan/packet/${encodeURIComponent(trip.id)}`}
+          >
+            <PacketIcon />
+            Packet
+          </Button>
           <Button
             size="sm"
             variant="outline"

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { GearItem, RigProfile } from "@/lib/types";
 import { gear } from "@/lib/data/gear";
-import { computeLoadout } from "@/lib/derive";
+import { computeLoadout, gearItemQuantity } from "@/lib/derive";
 import { useTripPlan } from "@/lib/storage";
 import { CountUp } from "@/components/garage/count-up";
 import { PayloadBar } from "@/components/garage/payload-bar";
@@ -21,14 +21,16 @@ function GearRow({
   item,
   on,
   partySize,
+  dayCount,
   onToggle,
 }: {
   item: GearItem;
   on: boolean;
   partySize: number;
+  dayCount: number;
   onToggle: () => void;
 }) {
-  const qty = item.qtyPerPerson ? partySize : 1;
+  const qty = gearItemQuantity(item, partySize, dayCount);
   const lbs = Math.round(item.weightLbs * qty * 10) / 10;
   return (
     <li>
@@ -82,9 +84,9 @@ function GearRow({
           <span className={`readout block text-xs ${on ? "" : "!text-sand-dim"}`}>
             {lbs.toLocaleString("en-US", { maximumFractionDigits: 1 })} lb
           </span>
-          {item.qtyPerPerson ? (
+          {item.qtyPerPerson || item.qtyPerDay ? (
             <span className="readout block text-[10px] text-sand-dim">
-              {item.weightLbs} × {partySize}
+              {item.weightLbs} × {qty}
             </span>
           ) : null}
         </span>
@@ -113,12 +115,13 @@ export function LoadoutBuilder({
   const partySize =
     partyOverride ??
     Math.min(MAX_PARTY, Math.max(MIN_PARTY, plan?.partySize ?? 2));
+  const dayCount = Math.max(1, plan?.days.length ?? 1);
 
   const selected = useMemo(() => new Set(gearIds), [gearIds]);
   const loadout = useMemo(
-    () => computeLoadout(gearIds, partySize, rig, gear),
+    () => computeLoadout(gearIds, partySize, rig, gear, dayCount),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [gearIds, partySize, rig.payloadLbs, rig.fuelRangeMiles],
+    [gearIds, partySize, dayCount, rig.payloadLbs, rig.fuelRangeMiles],
   );
 
   const remaining = Math.round((rig.payloadLbs - loadout.totalLbs) * 10) / 10;
@@ -176,7 +179,7 @@ export function LoadoutBuilder({
             </button>
           </span>
           <span className="hidden text-xs text-sand-dim sm:block">
-            scales per-person gear
+            scales per-person and per-day gear
           </span>
         </div>
 
@@ -234,6 +237,7 @@ export function LoadoutBuilder({
                       item={item}
                       on={selected.has(item.id)}
                       partySize={partySize}
+                      dayCount={dayCount}
                       onToggle={() => toggle(item.id)}
                     />
                   ))}

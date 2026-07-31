@@ -328,18 +328,30 @@ export interface Loadout {
 /** Range penalty: ~8% of rated range at full payload, linear. */
 const RANGE_PENALTY_AT_FULL_PAYLOAD = 0.08;
 
+/** Quantity multiplier shared by the Garage, planner, and field packet. */
+export function gearItemQuantity(
+  item: GearItem,
+  partySize: number,
+  dayCount = 1,
+): number {
+  const people = item.qtyPerPerson ? Math.max(1, partySize) : 1;
+  const days = item.qtyPerDay ? Math.max(1, dayCount) : 1;
+  return people * days;
+}
+
 export function computeLoadout(
   gearIds: string[],
   partySize: number,
   rig: RigProfile,
   catalog: GearItem[],
+  dayCount = 1,
 ): Loadout {
   const byCategory: Record<string, number> = {};
   let totalLbs = 0;
   const wanted = new Set(gearIds);
   for (const item of catalog) {
     if (!wanted.has(item.id)) continue;
-    const qty = item.qtyPerPerson ? Math.max(1, partySize) : 1;
+    const qty = gearItemQuantity(item, partySize, dayCount);
     const w = item.weightLbs * qty;
     totalLbs += w;
     byCategory[item.category] = (byCategory[item.category] ?? 0) + w;
