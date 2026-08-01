@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { useSavedTrips } from "@/lib/storage";
+import { useLocalStorage, useSavedTrips } from "@/lib/storage";
 import {
   buildTripPacket,
   type TripPacketData,
@@ -17,7 +17,15 @@ import type {
   WaypointKind,
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { OfflineFieldPanel } from "@/components/plan/offline-field-panel";
 import { ShareTripPanel } from "@/components/plan/share-trip-panel";
+import {
+  DEPARTURE_CHECKS,
+  createOfflineFieldState,
+  normalizeOfflineFieldState,
+  offlineFieldStorageKey,
+  type OfflineFieldState,
+} from "@/lib/offline-field";
 import {
   CATEGORY_LABEL,
   AlertIcon,
@@ -121,6 +129,25 @@ function ShareIcon() {
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="19" r="3" />
       <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+    </svg>
+  );
+}
+
+function OfflineIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+      <path d="M5 19h14" />
     </svg>
   );
 }
@@ -254,7 +281,13 @@ function WaypointGlyph({ waypoint }: { waypoint: Waypoint }) {
   return <FlagIcon size={15} />;
 }
 
-function GearGroup({ group }: { group: TripPacketGearGroup }) {
+function GearGroup({
+  group,
+  onToggle,
+}: {
+  group: TripPacketGearGroup;
+  onToggle: (itemId: string) => void;
+}) {
   const packed = group.items.filter((entry) => entry.checked).length;
 
   return (
@@ -268,13 +301,16 @@ function GearGroup({ group }: { group: TripPacketGearGroup }) {
       <ul>
         {group.items.map(({ item, quantity, weightLbs, checked }) => (
           <li key={item.id}>
-            <span
+            <button
+              type="button"
               className={`${styles.checkBox} ${checked ? styles.checkBoxDone : ""}`}
-              role="img"
-              aria-label={checked ? "Packed" : "Not packed"}
+              role="checkbox"
+              aria-checked={checked}
+              aria-label={`${checked ? "Packed" : "Not packed"}: ${item.name}`}
+              onClick={() => onToggle(item.id)}
             >
               {checked ? "✓" : ""}
-            </span>
+            </button>
             <span className={styles.gearName}>
               {item.name}
               {item.essential ? <small>Essential</small> : null}
@@ -311,14 +347,26 @@ function Packet({
   packet,
   sharedMeta,
   shareOpen,
+  offlineOpen,
   onToggleShare,
+  onToggleOffline,
+  onToggleGear,
+  departureChecks,
+  onToggleDeparture,
   sharePanel,
+  offlinePanel,
 }: {
   packet: TripPacketData;
   sharedMeta?: { createdAt: string; expiresAt: string | null };
   shareOpen?: boolean;
+  offlineOpen: boolean;
   onToggleShare?: () => void;
+  onToggleOffline: () => void;
+  onToggleGear: (itemId: string) => void;
+  departureChecks: Record<string, boolean>;
+  onToggleDeparture: (checkId: string) => void;
   sharePanel?: ReactNode;
+  offlinePanel: ReactNode;
 }) {
   const { plan, trail, rigSnapshot, readiness, fuel, totals } = packet;
   const rig = rigSnapshot.profile;
@@ -328,8 +376,12 @@ function Packet({
   return (
     <>
       <div className={styles.screenActions} aria-label="Trip packet actions">
-        <Button href={sharedMeta ? "/trails" : "/plan"} variant="ghost">
-          {sharedMeta ? "← Explore trails" : "← Trip Builder"}
+        <Button
+          href={sharedMeta ? `/trails/${trail.slug}` : "/plan"}
+          variant="ghost"
+          hardNavigation
+        >
+          {sharedMeta ? "← Trail summary" : "← Trip Builder"}
         </Button>
         <div>
           {onToggleShare ? (
@@ -344,7 +396,21 @@ function Packet({
               Share brief
             </Button>
           ) : null}
-          <Button href={`/trails/${trail.slug}`} variant="outline">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onToggleOffline}
+            aria-expanded={offlineOpen}
+            aria-controls="offline-field-panel"
+          >
+            <OfflineIcon />
+            Offline
+          </Button>
+          <Button
+            href={`/trails/${trail.slug}`}
+            variant="outline"
+            hardNavigation
+          >
             Review trail
           </Button>
           <Button onClick={() => window.print()}>
@@ -368,6 +434,7 @@ function Packet({
         </aside>
       ) : null}
       {sharePanel}
+      {offlinePanel}
 
       <article className={styles.packetPaper}>
         <header className={styles.packetHeader}>
@@ -571,7 +638,11 @@ function Packet({
           </div>
           <div className={styles.gearColumns}>
             {packet.gearGroups.map((group) => (
-              <GearGroup key={group.category} group={group} />
+              <GearGroup
+                key={group.category}
+                group={group}
+                onToggle={onToggleGear}
+              />
             ))}
           </div>
         </section>
@@ -579,15 +650,20 @@ function Packet({
         <section className={styles.packetSection}>
           <SectionHeading number="06" eyebrow="Departure gate" title="Verify before wheels roll" />
           <ul className={styles.departureChecks}>
-            {[
-              "Official route status, seasonal gates, and land-manager closures checked",
-              "Weather, flash-flood, avalanche, and fire restrictions checked",
-              "Permits, passes, camping rules, and vehicle requirements confirmed",
-              "Offline navigation downloaded and paper backup packed",
-              "Fuel, water, and emergency contact plan confirmed with the crew",
-              "Trip packet left with the off-trail emergency contact",
-            ].map((item) => (
-              <li key={item}><span />{item}</li>
+            {DEPARTURE_CHECKS.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={Boolean(departureChecks[item.id])}
+                  aria-label={`${departureChecks[item.id] ? "Complete" : "Incomplete"}: ${item.label}`}
+                  onClick={() => onToggleDeparture(item.id)}
+                  className={departureChecks[item.id] ? styles.checkBoxDone : ""}
+                >
+                  {departureChecks[item.id] ? "✓" : ""}
+                </button>
+                {item.label}
+              </li>
             ))}
           </ul>
         </section>
@@ -623,18 +699,90 @@ export function TripPacketClient({
   tripId,
   sharedTrip,
   sharedMeta,
+  sharedPath,
 }: {
   tripId: string;
   sharedTrip?: TripPlan;
   sharedMeta?: { createdAt: string; expiresAt: string | null };
+  sharedPath?: string;
 }) {
-  const { trips, hydrated } = useSavedTrips();
+  const { trips, hydrated, saveTrip } = useSavedTrips();
   const [shareOpen, setShareOpen] = useState(false);
+  const [offlineOpen, setOfflineOpen] = useState(false);
+  const initialFieldState = useMemo<OfflineFieldState>(
+    () =>
+      sharedTrip
+        ? createOfflineFieldState(sharedTrip)
+        : {
+            schemaVersion: 1,
+            checklist: {},
+            departureChecks: {},
+            cachedAt: null,
+            updatedAt: "",
+          },
+    [sharedTrip],
+  );
+  const [storedFieldState, setFieldState] = useLocalStorage<OfflineFieldState>(
+    offlineFieldStorageKey(tripId),
+    initialFieldState,
+  );
+  const fieldState = useMemo(
+    () => normalizeOfflineFieldState(storedFieldState, initialFieldState),
+    [initialFieldState, storedFieldState],
+  );
   const localTrip = hydrated
     ? trips.find((candidate) => candidate.id === tripId)
     : null;
-  const trip = sharedTrip ?? localTrip;
+  const trip = useMemo(
+    () =>
+      sharedTrip
+        ? { ...sharedTrip, checklist: fieldState.checklist }
+        : localTrip,
+    [fieldState.checklist, localTrip, sharedTrip],
+  );
   const packet = useMemo(() => (trip ? buildTripPacket(trip) : null), [trip]);
+
+  function touchFieldState(
+    update: (previous: OfflineFieldState) => OfflineFieldState,
+  ) {
+    setFieldState((previous) => {
+      const safePrevious = normalizeOfflineFieldState(
+        previous,
+        initialFieldState,
+      );
+      return {
+        ...update(safePrevious),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }
+
+  function toggleGear(itemId: string) {
+    if (!trip) return;
+    const checked = !trip.checklist[itemId];
+    if (sharedTrip) {
+      touchFieldState((previous) => ({
+        ...previous,
+        checklist: { ...previous.checklist, [itemId]: checked },
+      }));
+    } else {
+      saveTrip({
+        ...trip,
+        checklist: { ...trip.checklist, [itemId]: checked },
+      });
+      touchFieldState((previous) => previous);
+    }
+  }
+
+  function toggleDeparture(checkId: string) {
+    touchFieldState((previous) => ({
+      ...previous,
+      departureChecks: {
+        ...previous.departureChecks,
+        [checkId]: !previous.departureChecks[checkId],
+      },
+    }));
+  }
 
   if (!sharedTrip && !hydrated) {
     return (
@@ -653,12 +801,39 @@ export function TripPacketClient({
         packet={packet}
         sharedMeta={sharedMeta}
         shareOpen={shareOpen}
+        offlineOpen={offlineOpen}
         onToggleShare={
-          sharedTrip ? undefined : () => setShareOpen((open) => !open)
+          sharedTrip
+            ? undefined
+            : () => {
+                setOfflineOpen(false);
+                setShareOpen((open) => !open);
+              }
         }
+        onToggleOffline={() => {
+          setShareOpen(false);
+          setOfflineOpen((open) => !open);
+        }}
+        onToggleGear={toggleGear}
+        departureChecks={fieldState.departureChecks}
+        onToggleDeparture={toggleDeparture}
         sharePanel={
           shareOpen && !sharedTrip ? (
             <ShareTripPanel plan={trip} onClose={() => setShareOpen(false)} />
+          ) : null
+        }
+        offlinePanel={
+          offlineOpen ? (
+            <OfflineFieldPanel
+              packetPath={sharedPath ?? `/plan/packet/${tripId}`}
+              trailSlug={trip.trailSlug}
+              sourceUpdatedAt={sharedMeta?.createdAt ?? trip.createdAt}
+              packingTotal={packet.totals.totalItems}
+              packingComplete={packet.totals.checkedItems}
+              fieldState={fieldState}
+              onFieldStateChange={setFieldState}
+              onClose={() => setOfflineOpen(false)}
+            />
           ) : null
         }
       />

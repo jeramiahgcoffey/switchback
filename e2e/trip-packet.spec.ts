@@ -71,7 +71,9 @@ const savedTrip = {
 
 async function seedSavedTrip(page: Page) {
   await page.addInitScript((trip) => {
-    window.localStorage.setItem("switchback:trips:v1", JSON.stringify([trip]));
+    if (!window.localStorage.getItem("switchback:trips:v1")) {
+      window.localStorage.setItem("switchback:trips:v1", JSON.stringify([trip]));
+    }
   }, savedTrip);
 }
 
@@ -238,6 +240,117 @@ test("keeps the packet usable at a narrow field viewport", async ({ page }) => {
     () => document.documentElement.scrollWidth - window.innerWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("persists packing and departure checks for field use", async ({ page }) => {
+  await seedSavedTrip(page);
+  await page.goto(`/plan/packet/${savedTrip.id}`);
+
+  const packingCheck = page.getByRole("checkbox", {
+    name: /Tire repair kit/,
+  });
+  const departureCheck = page.getByRole("checkbox", {
+    name: /Weather, flash-flood/,
+  });
+  await packingCheck.click();
+  await departureCheck.click();
+  await expect(packingCheck).toHaveAttribute("aria-checked", "true");
+  await expect(departureCheck).toHaveAttribute("aria-checked", "true");
+
+  await page.reload();
+  await expect(page.getByRole("checkbox", { name: /Tire repair kit/ })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await expect(
+    page.getByRole("checkbox", { name: /Weather, flash-flood/ }),
+  ).toHaveAttribute("aria-checked", "true");
+});
+
+test("downloads a bounded field kit and records its freshness", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const worker = {
+      postMessage: (
+        message: { action?: string; paths?: string[] },
+        ports: MessagePort[],
+      ) => {
+        const state = window as typeof window & {
+          __offlineWorkerMessages?: (typeof message)[];
+        };
+        state.__offlineWorkerMessages = [
+          ...(state.__offlineWorkerMessages ?? []),
+          message,
+        ];
+        ports[0]?.postMessage({ ok: true, cached: true });
+      },
+    };
+    Object.defineProperty(navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({ active: worker }),
+      },
+    });
+  });
+  await seedSavedTrip(page);
+  await page.goto(`/plan/packet/${savedTrip.id}`);
+
+  await page.getByRole("button", { name: "Offline" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Offline field mode" }),
+  ).toBeVisible();
+  await expect(page.getByText("Planning, not navigation")).toBeVisible();
+  await page.getByRole("button", { name: "Save field kit offline" }).click();
+  await expect(page.getByText("On device")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh offline copy" })).toBeVisible();
+
+  const workerMessage = await page.evaluate(() => {
+    const messages = (
+      window as typeof window & {
+        __offlineWorkerMessages?: { action?: string; paths?: string[] }[];
+      }
+    ).__offlineWorkerMessages;
+    return messages?.find((message) => message.action === "CACHE_FIELD_KIT");
+  });
+  expect(workerMessage).toEqual({
+    action: "CACHE_FIELD_KIT",
+    paths: [
+      `/plan/packet/${savedTrip.id}`,
+      "/trails/white-rim-trail",
+      "/plan",
+      "/offline",
+    ],
+  });
+});
+
+test("serves an installable manifest and secured service worker", async ({
+  request,
+}) => {
+  const manifestResponse = await request.get("/manifest.webmanifest");
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = (await manifestResponse.json()) as {
+    name?: string;
+    display?: string;
+    icons?: { sizes?: string }[];
+  };
+  expect(manifest).toMatchObject({
+    name: "Switchback Overland Planner",
+    display: "standalone",
+  });
+  expect(manifest.icons?.map((icon) => icon.sizes)).toEqual([
+    "192x192",
+    "512x512",
+    "512x512",
+  ]);
+
+  const workerResponse = await request.get("/sw.js");
+  expect(workerResponse.ok()).toBe(true);
+  expect(workerResponse.headers()["cache-control"]).toContain("no-store");
+  expect(workerResponse.headers()["content-security-policy"]).toBe(
+    "default-src 'self'; script-src 'self'",
+  );
+  expect(await workerResponse.text()).toContain("CACHE_FIELD_KIT");
 });
 
 test("explains when a packet is not available on this device", async ({
