@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSavedTrips } from "@/lib/storage";
 import {
   buildTripPacket,
@@ -12,10 +12,12 @@ import { formatCoords, formatFeet, formatMiles } from "@/lib/derive";
 import type {
   CellCoverage,
   ReadinessStatus,
+  TripPlan,
   Waypoint,
   WaypointKind,
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ShareTripPanel } from "@/components/plan/share-trip-panel";
 import {
   CATEGORY_LABEL,
   AlertIcon,
@@ -98,6 +100,27 @@ function PrintIcon() {
       <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
       <path d="M7 14h10v7H7z" />
       <path d="M17.5 11.5h.01" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
     </svg>
   );
 }
@@ -284,7 +307,19 @@ function EmptyPacket({ invalid = false }: { invalid?: boolean }) {
   );
 }
 
-function Packet({ packet }: { packet: TripPacketData }) {
+function Packet({
+  packet,
+  sharedMeta,
+  shareOpen,
+  onToggleShare,
+  sharePanel,
+}: {
+  packet: TripPacketData;
+  sharedMeta?: { createdAt: string; expiresAt: string | null };
+  shareOpen?: boolean;
+  onToggleShare?: () => void;
+  sharePanel?: ReactNode;
+}) {
   const { plan, trail, rigSnapshot, readiness, fuel, totals } = packet;
   const rig = rigSnapshot.profile;
   const notes = plan.fieldNotes;
@@ -293,10 +328,22 @@ function Packet({ packet }: { packet: TripPacketData }) {
   return (
     <>
       <div className={styles.screenActions} aria-label="Trip packet actions">
-        <Button href="/plan" variant="ghost">
-          ← Trip Builder
+        <Button href={sharedMeta ? "/trails" : "/plan"} variant="ghost">
+          {sharedMeta ? "← Explore trails" : "← Trip Builder"}
         </Button>
         <div>
+          {onToggleShare ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onToggleShare}
+              aria-expanded={shareOpen}
+              aria-controls="share-trip-panel"
+            >
+              <ShareIcon />
+              Share brief
+            </Button>
+          ) : null}
           <Button href={`/trails/${trail.slug}`} variant="outline">
             Review trail
           </Button>
@@ -306,6 +353,21 @@ function Packet({ packet }: { packet: TripPacketData }) {
           </Button>
         </div>
       </div>
+
+      {sharedMeta ? (
+        <aside className="mx-auto mt-3 flex w-[calc(100%-2rem)] max-w-6xl flex-wrap items-center justify-between gap-2 rounded border border-sage/40 bg-sage/10 px-4 py-2.5 text-xs text-sage-bright print:hidden">
+          <strong className="font-display uppercase tracking-[0.12em]">
+            Read-only shared dispatch
+          </strong>
+          <span>
+            Published {formatFullDate(sharedMeta.createdAt.slice(0, 10))}
+            {sharedMeta.expiresAt
+              ? ` · Expires ${formatFullDate(sharedMeta.expiresAt.slice(0, 10))}`
+              : " · No expiration"}
+          </span>
+        </aside>
+      ) : null}
+      {sharePanel}
 
       <article className={styles.packetPaper}>
         <header className={styles.packetHeader}>
@@ -557,12 +619,24 @@ function Packet({ packet }: { packet: TripPacketData }) {
   );
 }
 
-export function TripPacketClient({ tripId }: { tripId: string }) {
+export function TripPacketClient({
+  tripId,
+  sharedTrip,
+  sharedMeta,
+}: {
+  tripId: string;
+  sharedTrip?: TripPlan;
+  sharedMeta?: { createdAt: string; expiresAt: string | null };
+}) {
   const { trips, hydrated } = useSavedTrips();
-  const trip = hydrated ? trips.find((candidate) => candidate.id === tripId) : null;
+  const [shareOpen, setShareOpen] = useState(false);
+  const localTrip = hydrated
+    ? trips.find((candidate) => candidate.id === tripId)
+    : null;
+  const trip = sharedTrip ?? localTrip;
   const packet = useMemo(() => (trip ? buildTripPacket(trip) : null), [trip]);
 
-  if (!hydrated) {
+  if (!sharedTrip && !hydrated) {
     return (
       <div className={styles.loadingState} aria-label="Loading trip packet">
         <div />
@@ -573,5 +647,21 @@ export function TripPacketClient({ tripId }: { tripId: string }) {
   }
   if (!trip) return <EmptyPacket />;
   if (!packet) return <EmptyPacket invalid />;
-  return <Packet packet={packet} />;
+  return (
+    <>
+      <Packet
+        packet={packet}
+        sharedMeta={sharedMeta}
+        shareOpen={shareOpen}
+        onToggleShare={
+          sharedTrip ? undefined : () => setShareOpen((open) => !open)
+        }
+        sharePanel={
+          shareOpen && !sharedTrip ? (
+            <ShareTripPanel plan={trip} onClose={() => setShareOpen(false)} />
+          ) : null
+        }
+      />
+    </>
+  );
 }

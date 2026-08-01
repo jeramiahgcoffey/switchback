@@ -150,6 +150,82 @@ test("carries field details from the builder into a newly saved packet", async (
   await expect(page.getByText("Permit WRT-88.")).toBeVisible();
 });
 
+test("creates, copies, and revokes an anonymous shared brief", async ({
+  page,
+  context,
+}) => {
+  const shareId = "AbCdEf0123456789_-abCDef";
+  let createBody: Record<string, unknown> | null = null;
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.route("**/api/auth/get-session", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        session: {
+          id: "session-share-test",
+          userId: "user-share-test",
+          token: "test-token",
+          expiresAt: "2026-08-31T12:00:00.000Z",
+        },
+        user: {
+          id: "user-share-test",
+          name: "Trail Planner",
+          email: "planner@example.com",
+          emailVerified: true,
+          createdAt: "2026-07-01T12:00:00.000Z",
+          updatedAt: "2026-07-01T12:00:00.000Z",
+        },
+      }),
+    }),
+  );
+  await page.route("**/api/shared-trips**", async (route) => {
+    const request = route.request();
+    if (request.method() === "GET") {
+      await route.fulfill({ json: { shares: [] } });
+      return;
+    }
+    if (request.method() === "POST") {
+      createBody = request.postDataJSON() as Record<string, unknown>;
+      await route.fulfill({
+        status: 201,
+        json: {
+          share: {
+            shareId,
+            sourceTripId: savedTrip.id,
+            title: savedTrip.name,
+            trailSlug: savedTrip.trailSlug,
+            createdAt: "2026-07-31T12:00:00.000Z",
+            expiresAt: "2026-08-30T12:00:00.000Z",
+            revokedAt: null,
+            viewCount: 0,
+            lastViewedAt: null,
+          },
+        },
+      });
+      return;
+    }
+    await route.fulfill({ json: { revoked: true } });
+  });
+  await seedSavedTrip(page);
+  await page.goto(`/plan/packet/${savedTrip.id}`);
+
+  await page.getByRole("button", { name: "Share brief" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Share this trip brief" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Create share link" }).click();
+
+  await expect(page.getByText(`/share/${shareId}`)).toBeVisible();
+  await expect(page.getByText(/Link copied/)).toBeVisible();
+  expect(createBody).toMatchObject({
+    expiresInDays: 30,
+    includeFieldNotes: false,
+  });
+
+  await page.getByRole("button", { name: "Revoke" }).click();
+  await expect(page.getByText("Revoked")).toBeVisible();
+});
+
 test("keeps the packet usable at a narrow field viewport", async ({ page }) => {
   await seedSavedTrip(page);
   await page.setViewportSize({ width: 390, height: 844 });
