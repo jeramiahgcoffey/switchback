@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Inter, JetBrains_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AccountSync } from "@/components/auth/account-sync";
+import { PwaRegistration } from "@/components/pwa-registration";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
     "Plan the route. Ready the rig. Chase the weekend. Curated overland trails, day-by-day trip plans, and rig-readiness checks.",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#15181c",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,6 +47,7 @@ export default function RootLayout({
       className={`${barlowCondensed.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <PwaRegistration />
         <AccountSync />
         <SiteHeader />
         <main className="flex-1">{children}</main>

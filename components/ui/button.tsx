@@ -23,6 +23,7 @@ const BASE =
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string;
+  hardNavigation?: boolean;
   variant?: Variant;
   size?: Size;
   children: ReactNode;
@@ -30,6 +31,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({
   href,
+  hardNavigation = false,
   variant = "primary",
   size = "md",
   className = "",
@@ -38,6 +40,13 @@ export function Button({
 }: ButtonProps) {
   const classes = `${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className}`;
   if (href) {
+    if (hardNavigation) {
+      return (
+        <a href={href} className={classes}>
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={classes}>
         {children}

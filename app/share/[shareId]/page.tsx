@@ -72,6 +72,7 @@ export default async function SharedTripPage({
         createdAt: share.createdAt,
         expiresAt: share.expiresAt,
       }}
+      sharedPath={`/share/${shareId}`}
     />
   );
 }
